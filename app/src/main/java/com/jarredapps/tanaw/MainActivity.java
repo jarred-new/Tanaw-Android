@@ -17,6 +17,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 //import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -36,7 +37,8 @@ public class MainActivity extends AppCompatActivity {
     private TextView txtStatus;
     private GridView channelGrid;
     private FloatingActionButton _fab;
-
+    private SwipeRefreshLayout swipeRefreshLayout;
+    
     private final ArrayList<Channel> channels =
             new ArrayList<>();
 
@@ -58,6 +60,7 @@ public class MainActivity extends AppCompatActivity {
         });
         
         txtStatus = findViewById(R.id.txtStatus);
+        swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
         channelGrid = findViewById(R.id.channelGrid);
         _fab = findViewById(R.id._fab);
         
@@ -102,6 +105,27 @@ public class MainActivity extends AppCompatActivity {
                     // Open Media3 player here.
                 }
         );
+        
+        // Refresh to reload channels
+        swipeRefreshLayout.setOnRefreshListener(() -> {
+            String urlRefresh = preferences.getString(
+                PrefHelper.urls,
+                ""
+            );
+            
+            if (!savedUrl.isEmpty()) {
+                loadPlaylist(urlRefresh);
+                swipeRefreshLayout.setRefreshing(false);
+            }
+            else {
+                swipeRefreshLayout.setRefreshing(false);
+                Toast.makeText(
+                    MainActivity.this,
+                    "No Channels or Playlists were added yet!",
+                    Toast.LENGTH_SHORT
+                ).show();
+            }
+        });
     }
 
     // --------------------------------------------------

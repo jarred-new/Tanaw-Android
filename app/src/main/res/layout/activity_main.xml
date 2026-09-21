@@ -46,23 +46,35 @@
 
     <!-- Channel grid -->
 
-    <android.widget.GridView
-        android:id="@+id/channelGrid"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="12dp"
-        android:layout_marginEnd="20dp"
-        android:layout_marginBottom="20dp"
-        android:clipToPadding="false"
-        android:horizontalSpacing="12dp"
-        android:numColumns="2"
-        android:padding="2dp"
-        android:verticalSpacing="12dp"
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/swipeRefreshLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/txtStatus" />
+        app:layout_constraintStart_toStartOf="@id/txtStatus"
+        app:layout_constraintTop_toBottomOf="@id/txtStatus">
+    
+        <android.widget.GridView
+            android:id="@+id/channelGrid"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="12dp"
+            android:layout_marginEnd="20dp"
+            android:layout_marginBottom="20dp"
+            android:clipToPadding="false"
+            android:horizontalSpacing="12dp"
+            android:numColumns="2"
+            android:padding="2dp"
+            android:verticalSpacing="12dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/txtStatus"/>
+            
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
     
     <!-- FAB -->
     

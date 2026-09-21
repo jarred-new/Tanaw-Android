@@ -37,8 +37,10 @@ dependencies {
     androidTestImplementation libs.androidx.espresso.core
     androidTestImplementation libs.androidx.junit
     
+    implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.2.0-alpha01"
+    
     def media3Version = "1.11.1"
-
+    
     implementation "androidx.media3:media3-exoplayer:$media3Version"
 
     implementation "androidx.media3:media3-ui:$media3Version"
