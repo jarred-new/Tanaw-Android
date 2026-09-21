@@ -1,6 +1,6 @@
 package com.jarredapps.tanaw;
 
-import android.app.Activity;
+//import android.app.Activity;
 import android.os.Bundle;
 import android.text.InputType;
 import android.view.Gravity;
@@ -10,6 +10,13 @@ import android.widget.GridView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.content.SharedPreferences;
+
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+//import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -24,7 +31,7 @@ import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class MainActivity extends Activity {
+public class MainActivity extends AppCompatActivity {
 
     private TextView txtStatus;
     private GridView channelGrid;
@@ -37,16 +44,36 @@ public class MainActivity extends Activity {
 
     private final ExecutorService executor =
             Executors.newSingleThreadExecutor();
+    
+    private SharedPreferences preferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        //EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
-
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            return insets;
+        });
+        
         txtStatus = findViewById(R.id.txtStatus);
         channelGrid = findViewById(R.id.channelGrid);
         _fab = findViewById(R.id._fab);
+        
+        preferences = getSharedPreferences(
+            PrefHelper.prefName,
+            MODE_PRIVATE
+        );
+        
+        String savedUrl = preferences.getString(
+                PrefHelper.urls,
+                ""
+        );
+        
+        if (!savedUrl.isEmpty()) {
+            loadPlaylist(savedUrl);
+        }
 
         // GridView adapter
         channelAdapter = new ChannelAdapter();
@@ -231,6 +258,8 @@ public class MainActivity extends Activity {
                         channels.size() +
                         " channels loaded"
                 );
+                
+                preferences.edit().putString(PrefHelper.urls, playlistUrl).apply();
             });
         });
     }
