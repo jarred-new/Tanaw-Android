@@ -1,6 +1,5 @@
 package com.jarredapps.tanaw;
 
-//import android.app.Activity;
 import android.os.Bundle;
 import android.text.InputType;
 import android.view.Gravity;
@@ -15,7 +14,7 @@ import android.content.SharedPreferences;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-//import androidx.activity.EdgeToEdge;
+import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
@@ -53,7 +52,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        //EdgeToEdge.enable(this);
+        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             return insets;
@@ -115,7 +114,6 @@ public class MainActivity extends AppCompatActivity {
             
             if (!savedUrl.isEmpty()) {
                 loadPlaylist(urlRefresh);
-                swipeRefreshLayout.setRefreshing(false);
             }
             else {
                 swipeRefreshLayout.setRefreshing(false);
@@ -244,7 +242,11 @@ public class MainActivity extends AppCompatActivity {
                 "Loading playlist..."
         );
 
+        channelGrid.setVisibility(View.INVISIBLE);
         _fab.setEnabled(false);
+        if (swipeRefreshLayout.isRefreshing()) {
+            swipeRefreshLayout.setRefreshing(false);
+        }
 
         executor.execute(() -> {
 
@@ -254,6 +256,7 @@ public class MainActivity extends AppCompatActivity {
             runOnUiThread(() -> {
 
                 _fab.setEnabled(true);
+                channelGrid.setVisibility(View.VISIBLE);
 
                 if (playlist.error != null) {
 

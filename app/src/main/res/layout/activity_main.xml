@@ -8,85 +8,77 @@
     android:layout_height="match_parent"
     android:background="#0D0F12">
 
-    <!-- App title -->
-    
-    <com.google.android.material.appbar.AppBarLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        android:layout_width="match_parent"
+    <!-- Title -->
+
+    <TextView
+        android:id="@+id/txtTitle"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/_toolbar_layout">
-    
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/_toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
-            app:title="TANAW"
-            app:subtitle="Your IPTV player"
-            app:titleTextColor="?attr/colorOnPrimary" />
-    
-    </com.google.android.material.appbar.AppBarLayout>
-    
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="45dp"
+        android:text="TANAW"
+        android:textColor="#FFFFFF"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <!-- Status -->
 
     <TextView
         android:id="@+id/txtStatus"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
-        android:layout_marginTop="20dp"
-        android:layout_marginEnd="24dp"
+        android:layout_marginTop="2dp"
         android:text="No channels loaded"
         android:textColor="#8F969F"
         android:textSize="14sp"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/_toolbar_layout" />
+        app:layout_constraintTop_toBottomOf="@id/txtTitle" />
 
-    <!-- Channel grid -->
+    <!-- Refreshable GridView ONLY -->
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/swipeRefreshLayout"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="20dp"
+        app:layout_constraintTop_toBottomOf="@id/txtStatus"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="@id/txtStatus"
-        app:layout_constraintTop_toBottomOf="@id/txtStatus">
-    
-        <android.widget.GridView
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <GridView
             android:id="@+id/channelGrid"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginStart="20dp"
-            android:layout_marginTop="12dp"
-            android:layout_marginEnd="20dp"
-            android:layout_marginBottom="20dp"
-            android:clipToPadding="false"
-            android:horizontalSpacing="12dp"
             android:numColumns="2"
-            android:padding="2dp"
+            android:horizontalSpacing="12dp"
             android:verticalSpacing="12dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/txtStatus"/>
-            
+            android:padding="2dp"
+            android:clipToPadding="false"
+            android:stretchMode="columnWidth" />
+
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
-    
-    <!-- FAB -->
-    
+
+    <!-- Floating Action Button -->
+
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/_fab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        app:srcCompat="@android:drawable/ic_input_add"
-        android:contentDescription="Add Item"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
+        android:layout_marginEnd="43dp"
+        android:layout_marginBottom="43dp"
+        android:contentDescription="Add playlist"
+        android:src="@android:drawable/ic_input_add"
+        app:backgroundTint="#6750A4"
+        app:tint="#FFFFFF"
+        app:elevation="10dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
