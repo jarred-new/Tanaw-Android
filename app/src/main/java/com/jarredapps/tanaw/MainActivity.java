@@ -1,92 +1,588 @@
 package com.jarredapps.tanaw;
 
-//import android.R;
+import android.app.Activity;
 import android.os.Bundle;
-import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
-import android.app.*;
-import android.widget.*;
+import android.text.InputType;
+import android.view.Gravity;
+import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.GridView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
-public class MainActivity extends AppCompatActivity {
-    private FloatingActionButton _fab;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+public class MainActivity extends Activity {
+
     private TextView txtStatus;
-    
+    private GridView channelGrid;
+    private FloatingActionButton _fab;
+
+    private final ArrayList<Channel> channels =
+            new ArrayList<>();
+
+    private ChannelAdapter channelAdapter;
+
+    private final ExecutorService executor =
+            Executors.newSingleThreadExecutor();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        
-        EdgeToEdge.enable(this);
+
         setContentView(R.layout.activity_main);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
-        
-        _fab = findViewById(R.id._fab);
+
         txtStatus = findViewById(R.id.txtStatus);
-        
-        _fab.setOnClickListener(v -> showPlaylistDialog());
+        channelGrid = findViewById(R.id.channelGrid);
+        _fab = findViewById(R.id._fab);
+
+        // GridView adapter
+        channelAdapter = new ChannelAdapter();
+
+        channelGrid.setAdapter(channelAdapter);
+
+        // Add playlist
+        _fab.setOnClickListener(
+                v -> showPlaylistDialog()
+        );
+
+        // Channel click
+        channelGrid.setOnItemClickListener(
+                (parent, view, position, id) -> {
+
+                    Channel channel =
+                            channels.get(position);
+
+                    Toast.makeText(
+                            MainActivity.this,
+                            channel.name,
+                            Toast.LENGTH_SHORT
+                    ).show();
+
+                    // Later:
+                    // Open Media3 player here.
+                }
+        );
     }
-    
+
+    // --------------------------------------------------
+    // Playlist dialog
+    // --------------------------------------------------
+
     private void showPlaylistDialog() {
-        final LinearLayout layout = new LinearLayout(this);
-    
-        layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setPadding(40, 10, 40, 0);
-    
-        final TextInputLayout inputLayout = new TextInputLayout(
-                this,
-                null,
-                com.google.android.material.R.attr.textInputOutlinedStyle
+
+        LinearLayout layout =
+                new LinearLayout(this);
+
+        layout.setOrientation(
+                LinearLayout.VERTICAL
         );
-    
-        inputLayout.setHint("M3U Playlist URL");
-    
-        final TextInputEditText input = new TextInputEditText(this);
-    
+
+        layout.setPadding(
+                40,
+                10,
+                40,
+                0
+        );
+
+        TextInputLayout inputLayout =
+                new TextInputLayout(
+                        this,
+                        null,
+                        com.google.android.material.R.attr
+                                .textInputOutlinedStyle
+                );
+
+        inputLayout.setHint(
+                "M3U Playlist URL"
+        );
+
+        TextInputEditText input =
+                new TextInputEditText(this);
+
         input.setSingleLine(true);
+
         input.setInputType(
-                android.text.InputType.TYPE_CLASS_TEXT |
-                android.text.InputType.TYPE_TEXT_VARIATION_URI
+                InputType.TYPE_CLASS_TEXT |
+                InputType.TYPE_TEXT_VARIATION_URI
         );
-    
+
         inputLayout.addView(input);
+
         layout.addView(inputLayout);
-    
-        new MaterialAlertDialogBuilder(this)
+
+        androidx.appcompat.app.AlertDialog dialog =
+                new MaterialAlertDialogBuilder(this)
                         .setTitle("Add Playlist")
                         .setView(layout)
-                        .setNegativeButton("Cancel", null)
-                        .setPositiveButton("Add", (dialog, which) -> {
-                            String url = input.getText()
-                                .toString()
-                                .trim();
-    
-                            if (url.isEmpty()) {
-        
-                                inputLayout.setError(
-                                        "Enter a playlist URL"
-                                );
-        
-                                return;
-                            }
-        
-                            inputLayout.setError(null);
-                            
-                            //loadPlaylist(url);
-                        }).show();
+                        .setNegativeButton(
+                                "Cancel",
+                                null
+                        )
+                        .setPositiveButton(
+                                "Add",
+                                null
+                        )
+                        .create();
+
+        dialog.setOnShowListener(
+                d -> {
+
+                    dialog.getButton(
+                            androidx.appcompat.app.AlertDialog
+                                    .BUTTON_POSITIVE
+                    ).setOnClickListener(v -> {
+
+                        String url =
+                                input.getText()
+                                        .toString()
+                                        .trim();
+
+                        if (url.isEmpty()) {
+
+                            inputLayout.setError(
+                                    "Enter a playlist URL"
+                            );
+
+                            return;
+                        }
+
+                        if (!url.startsWith("http://") &&
+                                !url.startsWith("https://")) {
+
+                            inputLayout.setError(
+                                    "Enter a valid HTTP/HTTPS URL"
+                            );
+
+                            return;
+                        }
+
+                        inputLayout.setError(null);
+
+                        dialog.dismiss();
+
+                        loadPlaylist(url);
+                    });
+                }
+        );
+
+        dialog.show();
     }
-    
-    /*private void loadPlaylist(String url) {
-        
-    }*/ 
+
+    // --------------------------------------------------
+    // Load playlist
+    // --------------------------------------------------
+
+    private void loadPlaylist(
+            String playlistUrl
+    ) {
+
+        txtStatus.setText(
+                "Loading playlist..."
+        );
+
+        _fab.setEnabled(false);
+
+        executor.execute(() -> {
+
+            PlaylistResult playlist =
+                    downloadPlaylist(playlistUrl);
+
+            runOnUiThread(() -> {
+
+                _fab.setEnabled(true);
+
+                if (playlist.error != null) {
+
+                    txtStatus.setText(
+                            "Failed to load playlist"
+                    );
+
+                    Toast.makeText(
+                            MainActivity.this,
+                            playlist.error,
+                            Toast.LENGTH_LONG
+                    ).show();
+
+                    return;
+                }
+
+                channels.clear();
+
+                channels.addAll(
+                        playlist.channels
+                );
+
+                channelAdapter.notifyDataSetChanged();
+
+                txtStatus.setText(
+                        channels.size() +
+                        " channels loaded"
+                );
+            });
+        });
+    }
+
+    // --------------------------------------------------
+    // Download and parse M3U
+    // --------------------------------------------------
+
+    private PlaylistResult downloadPlaylist(
+            String playlistUrl
+    ) {
+
+        ArrayList<Channel> result =
+                new ArrayList<>();
+
+        HttpURLConnection connection = null;
+
+        try {
+
+            URL url =
+                    new URL(playlistUrl);
+
+            connection =
+                    (HttpURLConnection)
+                            url.openConnection();
+
+            connection.setRequestMethod("GET");
+
+            connection.setConnectTimeout(
+                    15000
+            );
+
+            connection.setReadTimeout(
+                    30000
+            );
+
+            connection.setRequestProperty(
+                    "User-Agent",
+                    "Tanaw IPTV Player"
+            );
+
+            connection.setRequestProperty(
+                    "Accept",
+                    "*/*"
+            );
+
+            connection.setInstanceFollowRedirects(
+                    true
+            );
+
+            connection.connect();
+
+            int responseCode =
+                    connection.getResponseCode();
+
+            if (responseCode < 200 ||
+                    responseCode >= 300) {
+
+                return new PlaylistResult(
+                        result,
+                        "HTTP " + responseCode
+                );
+            }
+
+            BufferedReader reader =
+                    new BufferedReader(
+                            new InputStreamReader(
+                                    connection
+                                            .getInputStream()
+                            )
+                    );
+
+            String line;
+
+            String channelName = null;
+            String channelLogo = null;
+
+            while ((line =
+                    reader.readLine()) != null) {
+
+                line = line.trim();
+
+                if (line.isEmpty()) {
+                    continue;
+                }
+
+                // Channel information
+                if (line.startsWith("#EXTINF")) {
+
+                    channelName =
+                            parseChannelName(line);
+
+                    channelLogo =
+                            parseAttribute(
+                                    line,
+                                    "tvg-logo"
+                            );
+
+                    continue;
+                }
+
+                // Ignore other M3U tags
+                if (line.startsWith("#")) {
+                    continue;
+                }
+
+                // This line is the stream URL
+                if (channelName != null) {
+
+                    String streamUrl = line;
+
+                    result.add(
+                            new Channel(
+                                    channelName,
+                                    channelLogo,
+                                    streamUrl
+                            )
+                    );
+
+                    channelName = null;
+                    channelLogo = null;
+                }
+            }
+
+            reader.close();
+
+            return new PlaylistResult(
+                    result,
+                    null
+            );
+
+        } catch (Exception e) {
+
+            String message =
+                    e.getMessage();
+
+            if (message == null ||
+                    message.isEmpty()) {
+
+                message =
+                        e.getClass()
+                                .getSimpleName();
+            }
+
+            return new PlaylistResult(
+                    result,
+                    message
+            );
+
+        } finally {
+
+            if (connection != null) {
+                connection.disconnect();
+            }
+        }
+    }
+
+    // --------------------------------------------------
+    // Parse channel name
+    // --------------------------------------------------
+
+    private String parseChannelName(
+            String line
+    ) {
+
+        int comma =
+                line.indexOf(',');
+
+        if (comma >= 0 &&
+                comma + 1 < line.length()) {
+
+            String name =
+                    line.substring(
+                            comma + 1
+                    ).trim();
+
+            if (!name.isEmpty()) {
+                return name;
+            }
+        }
+
+        return "Unknown Channel";
+    }
+
+    // --------------------------------------------------
+    // Parse M3U attribute
+    // --------------------------------------------------
+
+    private String parseAttribute(
+            String line,
+            String attribute
+    ) {
+
+        String search =
+                attribute + "=\"";
+
+        int start =
+                line.indexOf(search);
+
+        if (start == -1) {
+            return "";
+        }
+
+        start += search.length();
+
+        int end =
+                line.indexOf(
+                        "\"",
+                        start
+                );
+
+        if (end == -1) {
+            return "";
+        }
+
+        return line.substring(
+                start,
+                end
+        );
+    }
+
+    // --------------------------------------------------
+    // Channel adapter
+    // --------------------------------------------------
+
+    private class ChannelAdapter
+            extends ArrayAdapter<Channel> {
+
+        ChannelAdapter() {
+
+            super(
+                    MainActivity.this,
+                    android.R.layout
+                            .simple_list_item_1,
+                    channels
+            );
+        }
+
+        @Override
+        public View getView(
+                int position,
+                View convertView,
+                android.view.ViewGroup parent
+        ) {
+
+            TextView textView;
+
+            if (convertView == null) {
+
+                textView =
+                        new TextView(
+                                MainActivity.this
+                        );
+
+                GridView.LayoutParams params =
+                        new GridView.LayoutParams(
+                                GridView.LayoutParams
+                                        .MATCH_PARENT,
+                                120
+                        );
+
+                textView.setLayoutParams(
+                        params
+                );
+
+                textView.setGravity(
+                        Gravity.CENTER
+                );
+
+                textView.setPadding(
+                        12,
+                        12,
+                        12,
+                        12
+                );
+
+                textView.setTextColor(
+                        android.graphics.Color.WHITE
+                );
+
+                textView.setTextSize(
+                        15
+                );
+
+                textView.setBackgroundColor(
+                        android.graphics.Color
+                                .rgb(35, 35, 35)
+                );
+
+            } else {
+
+                textView =
+                        (TextView) convertView;
+            }
+
+            Channel channel =
+                    channels.get(position);
+
+            textView.setText(
+                    channel.name
+            );
+
+            return textView;
+        }
+    }
+
+    // --------------------------------------------------
+    // Channel model
+    // --------------------------------------------------
+
+    private static class Channel {
+
+        String name;
+        String logo;
+        String url;
+
+        Channel(
+                String name,
+                String logo,
+                String url
+        ) {
+
+            this.name = name;
+            this.logo = logo;
+            this.url = url;
+        }
+    }
+
+    // --------------------------------------------------
+    // Playlist result
+    // --------------------------------------------------
+
+    private static class PlaylistResult {
+
+        ArrayList<Channel> channels;
+        String error;
+
+        PlaylistResult(
+                ArrayList<Channel> channels,
+                String error
+        ) {
+
+            this.channels = channels;
+            this.error = error;
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+
+        super.onDestroy();
+
+        executor.shutdownNow();
+    }
 }
