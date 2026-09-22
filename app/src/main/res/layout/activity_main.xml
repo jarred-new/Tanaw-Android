@@ -6,7 +6,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#0D0F12">
+    android:background="?attr/colorSurface">
 
     <!-- Title -->
 
@@ -17,7 +17,7 @@
         android:layout_marginStart="24dp"
         android:layout_marginTop="45dp"
         android:text="TANAW"
-        android:textColor="#FFFFFF"
+        android:textColor="?attr/colorOnSurface"
         android:textSize="28sp"
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
@@ -32,7 +32,7 @@
         android:layout_marginStart="24dp"
         android:layout_marginTop="2dp"
         android:text="No channels loaded"
-        android:textColor="#8F969F"
+        android:textColor="?attr/colorSurfaceVariant"
         android:textSize="14sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/txtTitle" />
@@ -71,12 +71,12 @@
         android:id="@+id/_fab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="43dp"
-        android:layout_marginBottom="43dp"
+        android:layout_marginEnd="32dp"
+        android:layout_marginBottom="38dp"
         android:contentDescription="Add playlist"
         android:src="@android:drawable/ic_input_add"
-        app:backgroundTint="#6750A4"
-        app:tint="#FFFFFF"
+        app:backgroundTint="?attr/colorPrimaryContainer"
+        app:tint="?attr/colorOnPrimaryContainer"
         app:elevation="10dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent" />

@@ -3,6 +3,7 @@
     <style name="Base.Theme.Tanaw" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <item name="dynamicColorThemeOverlay">@style/ThemeOverlay.Material3.DynamicColors.DayNight</item>
     </style>
 
     <style name="Theme.Tanaw" parent="Base.Theme.Tanaw" />
