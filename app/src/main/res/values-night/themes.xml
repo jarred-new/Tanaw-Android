@@ -5,4 +5,20 @@
         <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
         <item name="dynamicColorThemeOverlay">@style/ThemeOverlay.Material3.DynamicColors.DayNight</item>
     </style>
+    
+    <style name="Base.Theme.Tanaw.Player" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Customize your light theme here. -->
+        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <item name="dynamicColorThemeOverlay">@style/ThemeOverlay.Material3.DynamicColors.DayNight</item>
+        
+        <!-- Hides the status bar -->
+        <item name="android:windowFullscreen">true</item>
+        
+        <!-- Ensures content expands into the navigation bar area -->
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:windowTranslucentNavigation">true</item>
+        
+        <!-- Optional: Forces layout to use the notch/cutout space if present -->
+        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
+    </style>
 </resources>

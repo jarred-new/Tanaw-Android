@@ -10,6 +10,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.content.SharedPreferences;
+import android.content.Intent;
 
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -50,9 +51,12 @@ public class MainActivity extends AppCompatActivity {
             Executors.newSingleThreadExecutor();
     
     private SharedPreferences preferences;
+    
+    private Intent intentPlayer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        setTheme(R.style.Theme_Tanaw);
         DynamicColors.applyIfAvailable(this);
         EdgeToEdge.enable(this);
         
@@ -69,11 +73,12 @@ public class MainActivity extends AppCompatActivity {
         channelGrid = findViewById(R.id.channelGrid);
         _fab = findViewById(R.id._fab);
         
+        intentPlayer = new Intent();
+        
         preferences = getSharedPreferences(
             PrefHelper.prefName,
             MODE_PRIVATE
         );
-        
         
         String savedUrl = preferences.getString(
                 PrefHelper.urls,
@@ -100,14 +105,37 @@ public class MainActivity extends AppCompatActivity {
                     Channel channel =
                             channelAdapter.getItem(position);
 
-                    Toast.makeText(
+                    /*Toast.makeText(
                             MainActivity.this,
                             channel.name,
                             Toast.LENGTH_SHORT
-                    ).show();
+                    ).show();*/
 
-                    // Later:
-                    // Open Media3 player here.
+                    new MaterialAlertDialogBuilder(this)
+                        .setTitle(channel.name)
+                        .setMessage(
+                            "Channel Number: " + String.valueOf(position) + "\n" +
+                            "Name: " + channel.name + "\n" +
+                            "Url: " + channel.url + "\n"
+                        )
+                        .setNegativeButton(
+                                "Cancel",
+                                null
+                        )
+                        .setPositiveButton(
+                                "Play",
+                                (dialog, which) -> {
+                                    // Open Media3 player here.
+                                    if (intentPlayer != null) {
+                                        intentPlayer.setClass(this, TVPlayer.class);
+                                        intentPlayer.putExtra(
+                                            PrefHelper.urlsIntent, channel.url
+                                        );
+                                        startActivity(intentPlayer);
+                                    }
+                                }
+                        )
+                        .show();
                 }
         );
         
