@@ -15,6 +15,7 @@ import androidx.media3.datasource.DefaultHttpDataSource;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory;
 import androidx.media3.ui.PlayerView;
+import androidx.activity.OnBackPressedCallback;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.color.DynamicColors;
@@ -72,6 +73,20 @@ public class TVPlayer extends AppCompatActivity {
         }
 
         streamUrl = streamUrl.trim();
+        
+        OnBackPressedCallback callback = new OnBackPressedCallback(true /* enabled by default */) {
+            @Override
+            public void handleOnBackPressed() {
+                new MaterialAlertDialogBuilder(TVPlayer.this)
+                .setTitle("Are you sure to stop?")
+                .setNegativeButton("No", null)
+                .setPositiveButton("Yes", (dialog, which) -> {
+                    finish();
+                })
+                .show();
+            }
+        };
+        getOnBackPressedDispatcher().addCallback(this, callback);
     }
 
     @Override
@@ -326,4 +341,6 @@ public class TVPlayer extends AppCompatActivity {
 
         super.onDestroy();
     }
+    
+    
 }
