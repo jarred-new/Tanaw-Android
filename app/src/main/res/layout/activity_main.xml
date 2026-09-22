@@ -3,51 +3,92 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="?attr/colorSurface">
 
-    <!-- Title -->
+    <!-- ========================================== -->
+    <!-- TOP TOOLBAR                                -->
+    <!-- ========================================== -->
 
-    <TextView
-        android:id="@+id/txtTitle"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:id="@+id/toolbar"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="45dp"
-        android:text="TANAW"
-        android:textColor="?attr/colorOnSurface"
-        android:textSize="28sp"
-        android:textStyle="bold"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="34dp"
+        android:layout_marginEnd="13dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent">
 
-    <!-- Status -->
+        <!-- Title + status -->
 
-    <TextView
-        android:id="@+id/txtStatus"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="2dp"
-        android:text="No channels loaded"
-        android:textColor="?attr/colorSurfaceVariant"
-        android:textSize="14sp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/txtTitle" />
+        <LinearLayout
+            android:id="@+id/titleAndStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
-    <!-- Refreshable GridView ONLY -->
+            <TextView
+                android:id="@+id/txtTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="TANAW"
+                android:textColor="?attr/colorOnSurface"
+                android:textSize="28sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/txtStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="No channels loaded"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textSize="14sp" />
+
+        </LinearLayout>
+
+        <!-- Push search button to the right -->
+
+        <!--<Space
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />-->
+
+        <!-- Search -->
+
+        <androidx.appcompat.widget.SearchView
+            android:id="@+id/searchView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:iconifiedByDefault="true"
+            android:queryHint="Search channels"
+            android:background="@android:color/transparent" 
+            android:layout_gravity="center_horizontal|right" />
+        
+    </LinearLayout>
+
+
+    <!-- ========================================== -->
+    <!-- SWIPE REFRESH + GRID                       -->
+    <!-- ========================================== -->
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipeRefreshLayout"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginStart="20dp"
+        android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
-        android:layout_marginEnd="20dp"
-        android:layout_marginBottom="20dp"
-        app:layout_constraintTop_toBottomOf="@id/txtStatus"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+
+        app:layout_constraintTop_toBottomOf="@id/toolbar"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
@@ -56,28 +97,39 @@
             android:id="@+id/channelGrid"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+
             android:numColumns="2"
+
             android:horizontalSpacing="12dp"
             android:verticalSpacing="12dp"
+
             android:padding="2dp"
             android:clipToPadding="false"
+
             android:stretchMode="columnWidth" />
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-    <!-- Floating Action Button -->
+
+    <!-- ========================================== -->
+    <!-- ADD PLAYLIST FAB                           -->
+    <!-- ========================================== -->
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/_fab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="32dp"
-        android:layout_marginBottom="38dp"
+
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="24dp"
+
         android:contentDescription="Add playlist"
         android:src="@android:drawable/ic_input_add"
+
         app:backgroundTint="?attr/colorPrimaryContainer"
         app:tint="?attr/colorOnPrimaryContainer"
-        app:elevation="10dp"
+        app:elevation="8dp"
+
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent" />
 

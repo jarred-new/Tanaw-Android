@@ -17,6 +17,7 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+import androidx.appcompat.widget.SearchView;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -38,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
     private GridView channelGrid;
     private FloatingActionButton _fab;
     private SwipeRefreshLayout swipeRefreshLayout;
+    private SearchView searchView;
     
     private final ArrayList<Channel> channels =
             new ArrayList<>();
@@ -62,6 +64,7 @@ public class MainActivity extends AppCompatActivity {
         });
         
         txtStatus = findViewById(R.id.txtStatus);
+        searchView = findViewById(R.id.searchView);
         swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
         channelGrid = findViewById(R.id.channelGrid);
         _fab = findViewById(R.id._fab);
@@ -83,7 +86,6 @@ public class MainActivity extends AppCompatActivity {
 
         // GridView adapter
         channelAdapter = new ChannelAdapter();
-
         channelGrid.setAdapter(channelAdapter);
 
         // Add playlist
@@ -96,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
                 (parent, view, position, id) -> {
 
                     Channel channel =
-                            channels.get(position);
+                            channelAdapter.getItem(position);
 
                     Toast.makeText(
                             MainActivity.this,
@@ -128,8 +130,23 @@ public class MainActivity extends AppCompatActivity {
                 ).show();
             }
         });
+        
+        // Search
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                channelAdapter.getFilter().filter(query);
+                return true;
+            }
+        
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                channelAdapter.getFilter().filter(newText);
+                return true;
+            }
+        });
     }
-
+    
     // --------------------------------------------------
     // Playlist dialog
     // --------------------------------------------------
@@ -278,12 +295,9 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 channels.clear();
-
-                channels.addAll(
-                        playlist.channels
-                );
-
-                channelAdapter.notifyDataSetChanged();
+                channels.addAll(playlist.channels);
+                
+                channelAdapter.setChannels(channels);
 
                 txtStatus.setText(
                         channels.size() +
@@ -516,87 +530,189 @@ public class MainActivity extends AppCompatActivity {
     // Channel adapter
     // --------------------------------------------------
 
-    private class ChannelAdapter
-            extends ArrayAdapter<Channel> {
-
+    private class ChannelAdapter extends ArrayAdapter<Channel> implements android.widget.Filterable {
+    
+        private final ArrayList<Channel> allChannels;
+        private final ArrayList<Channel> filteredChannels;
+    
+        private final android.widget.Filter filter =
+                new android.widget.Filter() {
+    
+            @Override
+            protected FilterResults performFiltering(
+                    CharSequence constraint) {
+    
+                ArrayList<Channel> filtered =
+                        new ArrayList<>();
+    
+                if (constraint == null ||
+                        constraint.length() == 0) {
+    
+                    filtered.addAll(allChannels);
+    
+                } else {
+    
+                    String query =
+                            constraint.toString()
+                                    .toLowerCase()
+                                    .trim();
+    
+                    for (Channel channel : allChannels) {
+    
+                        if (channel.name
+                                .toLowerCase()
+                                .contains(query)) {
+    
+                            filtered.add(channel);
+                        }
+                    }
+                }
+    
+                FilterResults results =
+                        new FilterResults();
+    
+                results.values = filtered;
+                results.count = filtered.size();
+    
+                return results;
+            }
+    
+            @Override
+            @SuppressWarnings("unchecked")
+            protected void publishResults(
+                    CharSequence constraint,
+                    FilterResults results) {
+    
+                filteredChannels.clear();
+    
+                if (results.values != null) {
+    
+                    filteredChannels.addAll(
+                            (ArrayList<Channel>)
+                                    results.values
+                    );
+                }
+    
+                notifyDataSetChanged();
+            }
+        };
+    
         ChannelAdapter() {
-
+    
             super(
                     MainActivity.this,
-                    android.R.layout
-                            .simple_list_item_1,
-                    channels
+                    android.R.layout.simple_list_item_1,
+                    new ArrayList<>()
             );
+    
+            allChannels = new ArrayList<>();
+    
+            filteredChannels = new ArrayList<>();
+    
+            allChannels.addAll(channels);
+            filteredChannels.addAll(channels);
         }
-
+    
+        @Override
+        public int getCount() {
+            return filteredChannels.size();
+        }
+    
+        @Override
+        public Channel getItem(int position) {
+            return filteredChannels.get(position);
+        }
+    
+        @Override
+        public long getItemId(int position) {
+            return position;
+        }
+    
         @Override
         public View getView(
                 int position,
                 View convertView,
-                android.view.ViewGroup parent
-        ) {
-
+                android.view.ViewGroup parent) {
+    
             TextView textView;
-
+    
             if (convertView == null) {
-
+    
                 textView =
-                        new TextView(
-                                MainActivity.this
-                        );
-
+                        new TextView(MainActivity.this);
+    
                 GridView.LayoutParams params =
                         new GridView.LayoutParams(
-                                GridView.LayoutParams
-                                        .MATCH_PARENT,
+                                GridView.LayoutParams.MATCH_PARENT,
                                 120
                         );
-
-                textView.setLayoutParams(
-                        params
-                );
-
+    
+                textView.setLayoutParams(params);
+    
                 textView.setGravity(
                         Gravity.CENTER
                 );
-
+    
                 textView.setPadding(
                         12,
                         12,
                         12,
                         12
                 );
-
+    
                 textView.setTextColor(
                         android.graphics.Color.WHITE
                 );
-
-                textView.setTextSize(
-                        15
-                );
-
+    
+                textView.setTextSize(15);
+    
                 textView.setBackgroundColor(
-                        android.graphics.Color
-                                .rgb(35, 35, 35)
+                        android.graphics.Color.rgb(
+                                35,
+                                35,
+                                35
+                        )
                 );
-
+    
             } else {
-
+    
                 textView =
                         (TextView) convertView;
             }
-
+    
             Channel channel =
-                    channels.get(position);
-
+                    getItem(position);
+    
             textView.setText(
                     channel.name
             );
-
+    
             return textView;
         }
+    
+        @Override
+        public android.widget.Filter getFilter() {
+            return filter;
+        }
+    
+        void setChannels(
+                ArrayList<Channel> newChannels) {
+    
+            allChannels.clear();
+    
+            allChannels.addAll(
+                    newChannels
+            );
+    
+            filteredChannels.clear();
+    
+            filteredChannels.addAll(
+                    newChannels
+            );
+    
+            notifyDataSetChanged();
+        }
     }
-
     // --------------------------------------------------
     // Channel model
     // --------------------------------------------------
