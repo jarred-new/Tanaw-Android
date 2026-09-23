@@ -4,6 +4,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.content.Intent;
 import android.widget.TextView;
+import android.widget.ImageButton;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -28,6 +29,7 @@ public class TVPlayer extends AppCompatActivity {
     private PlayerView playerView;
     private ExoPlayer player;
     private TextView channelNameText;
+    private ImageButton backButton;
 
     private String streamUrl;
     private String channelName;
@@ -45,6 +47,7 @@ public class TVPlayer extends AppCompatActivity {
 
         playerView = findViewById(R.id.playerView);
         channelNameText = findViewById(R.id.channelNameText);
+        backButton = findViewById(R.id.backButton);
 
         streamUrl = getIntent().getStringExtra(
                 PrefHelper.urlsIntent
@@ -83,15 +86,25 @@ public class TVPlayer extends AppCompatActivity {
             @Override
             public void handleOnBackPressed() {
                 new MaterialAlertDialogBuilder(TVPlayer.this)
+                    .setTitle("Are you sure to stop?")
+                    .setNegativeButton("No", null)
+                    .setPositiveButton("Yes", (dialog, which) -> {
+                        finish();
+                    })
+                    .show();
+            }
+        };
+        getOnBackPressedDispatcher().addCallback(this, callback);
+        
+        backButton.setOnClickListener(v -> {
+            new MaterialAlertDialogBuilder(TVPlayer.this)
                 .setTitle("Are you sure to stop?")
                 .setNegativeButton("No", null)
                 .setPositiveButton("Yes", (dialog, which) -> {
                     finish();
                 })
                 .show();
-            }
-        };
-        getOnBackPressedDispatcher().addCallback(this, callback);
+        });
     }
 
     @Override
