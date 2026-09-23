@@ -1,0 +1,21 @@
+{
+  "allFiles": [
+    {
+      "file": "/storage/emulated/0/Documents/Tanaw-Android/gradle/wrapper/gradle-wrapper.properties",
+      "selection": {
+        "end": {
+          "column": 0,
+          "index": 0,
+          "line": 0
+        },
+        "start": {
+          "column": 0,
+          "index": 0,
+          "line": 0
+        }
+      }
+    }
+  ],
+  "projectPath": "/storage/emulated/0/Documents/Tanaw-Android",
+  "selectedFile": "/storage/emulated/0/Documents/Tanaw-Android/gradle/wrapper/gradle-wrapper.properties"
+}

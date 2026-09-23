@@ -1,6 +1,6 @@
 [versions]
 activity = "1.10.1"
-agp = "8.9.2"
+agp = "9.3.1"
 appcompat = "1.7.0"
 constraintlayout = "2.2.1"
 espressoCore = "3.6.1"
@@ -19,4 +19,3 @@ material = { group = "com.google.android.material", name = "material", version.r
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
-
