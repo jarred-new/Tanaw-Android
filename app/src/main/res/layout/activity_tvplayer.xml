@@ -20,12 +20,12 @@
         app:show_subtitle_button="true"
 
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/channelName"
+        app:layout_constraintBottom_toTopOf="@id/channelNameText"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
     <TextView
-        android:id="@+id/channelName"
+        android:id="@+id/channelNameText"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
 

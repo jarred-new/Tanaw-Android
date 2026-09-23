@@ -3,6 +3,7 @@ package com.jarredapps.tanaw;
 import android.net.Uri;
 import android.os.Bundle;
 import android.content.Intent;
+import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -26,6 +27,7 @@ public class TVPlayer extends AppCompatActivity {
 
     private PlayerView playerView;
     private ExoPlayer player;
+    private TextView channelNameText;
 
     private String streamUrl;
     private String channelName;
@@ -42,6 +44,7 @@ public class TVPlayer extends AppCompatActivity {
         setContentView(R.layout.activity_tvplayer);
 
         playerView = findViewById(R.id.playerView);
+        channelNameText = findViewById(R.id.channelNameText);
 
         streamUrl = getIntent().getStringExtra(
                 PrefHelper.urlsIntent
@@ -56,6 +59,8 @@ public class TVPlayer extends AppCompatActivity {
 
             channelName = "Unknown Channel";
         }
+        
+        channelNameText.setText(channelName);
 
         /*
          * Check stream URL.

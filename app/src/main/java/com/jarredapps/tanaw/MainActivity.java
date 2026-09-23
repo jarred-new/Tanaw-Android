@@ -67,6 +67,7 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
         
+        
         txtStatus = findViewById(R.id.txtStatus);
         searchView = findViewById(R.id.searchView);
         swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
@@ -114,7 +115,7 @@ public class MainActivity extends AppCompatActivity {
                     new MaterialAlertDialogBuilder(this)
                         .setTitle(channel.name)
                         .setMessage(
-                            "Channel Number: " + String.valueOf(position) + "\n" +
+                            "Channel Number: " + String.valueOf(id) + "\n" +
                             "Name: " + channel.name + "\n" +
                             "Url: " + channel.url + "\n"
                         )
