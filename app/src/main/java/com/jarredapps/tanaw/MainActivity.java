@@ -135,6 +135,9 @@ public class MainActivity extends AppCompatActivity {
                                         intentPlayer.putExtra(
                                             PrefHelper.channelNameIntent, channel.name
                                         );
+                                        intentPlayer.putExtra(
+                                            PrefHelper.channelIdIntent, id
+                                        );
                                         startActivity(intentPlayer);
                                     }
                                 }

@@ -1,7 +1,37 @@
 {
   "allFiles": [
     {
-      "file": "/storage/emulated/0/Documents/Tanaw-Android/app/src/main/java/com/jarredapps/tanaw/MainActivity.java",
+      "file": "/storage/emulated/0/Documents/Tanaw-Android/app/src/main/java/com/jarredapps/tanaw/TVInfoToast.java",
+      "selection": {
+        "end": {
+          "column": 20,
+          "index": 376,
+          "line": 16
+        },
+        "start": {
+          "column": 20,
+          "index": 376,
+          "line": 16
+        }
+      }
+    },
+    {
+      "file": "/storage/emulated/0/Documents/Tanaw-Android/app/src/main/res/layout/tvinfo.xml",
+      "selection": {
+        "end": {
+          "column": 0,
+          "index": 0,
+          "line": 0
+        },
+        "start": {
+          "column": 0,
+          "index": 0,
+          "line": 0
+        }
+      }
+    },
+    {
+      "file": "/storage/emulated/0/Documents/Tanaw-Android/app/src/main/java/com/jarredapps/tanaw/PrefHelper.java",
       "selection": {
         "end": {
           "column": 0,
@@ -19,48 +49,18 @@
       "file": "/storage/emulated/0/Documents/Tanaw-Android/app/src/main/java/com/jarredapps/tanaw/TVPlayer.java",
       "selection": {
         "end": {
-          "column": 10,
-          "index": 9571,
-          "line": 365
+          "column": 36,
+          "index": 6571,
+          "line": 214
         },
         "start": {
-          "column": 10,
-          "index": 9571,
-          "line": 365
-        }
-      }
-    },
-    {
-      "file": "/storage/emulated/0/Documents/Tanaw-Android/app/src/main/res/layout/activity_tvplayer.xml",
-      "selection": {
-        "end": {
-          "column": 46,
-          "index": 1706,
-          "line": 47
-        },
-        "start": {
-          "column": 46,
-          "index": 1706,
-          "line": 47
-        }
-      }
-    },
-    {
-      "file": "/storage/emulated/0/Documents/Tanaw-Android/app/src/main/res/values/themes.xml",
-      "selection": {
-        "end": {
-          "column": 0,
-          "index": 0,
-          "line": 0
-        },
-        "start": {
-          "column": 0,
-          "index": 0,
-          "line": 0
+          "column": 36,
+          "index": 6571,
+          "line": 214
         }
       }
     }
   ],
   "projectPath": "/storage/emulated/0/Documents/Tanaw-Android",
-  "selectedFile": "/storage/emulated/0/Documents/Tanaw-Android/app/src/main/res/values/themes.xml"
+  "selectedFile": "/storage/emulated/0/Documents/Tanaw-Android/app/src/main/java/com/jarredapps/tanaw/TVPlayer.java"
 }

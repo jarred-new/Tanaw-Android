@@ -1,21 +1,24 @@
 package com.jarredapps.tanaw;
 
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
-import android.content.Intent;
-import android.widget.TextView;
-import android.widget.ImageButton;
-import android.widget.LinearLayout;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
+import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.view.WindowInsetsControllerCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.MimeTypes;
 import androidx.media3.common.PlaybackException;
@@ -25,10 +28,9 @@ import androidx.media3.datasource.DefaultHttpDataSource;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory;
 import androidx.media3.ui.PlayerView;
-import androidx.activity.OnBackPressedCallback;
 
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.color.DynamicColors;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.util.Locale;
 
@@ -42,6 +44,8 @@ public class TVPlayer extends AppCompatActivity {
 
     private String streamUrl;
     private String channelName;
+    private int channelId;
+    
     private boolean fullscreen;
 
     @Override
@@ -61,11 +65,15 @@ public class TVPlayer extends AppCompatActivity {
         bottomBar = findViewById(R.id.bottomBar);
 
         streamUrl = getIntent().getStringExtra(
-                PrefHelper.urlsIntent
+            PrefHelper.urlsIntent
         );
 
         channelName = getIntent().getStringExtra(
-                PrefHelper.channelNameIntent
+            PrefHelper.channelNameIntent
+        );
+        channelId = getIntent().getIntExtra(
+            PrefHelper.channelIdIntent,
+            0
         );
 
         if (channelName == null ||
@@ -203,6 +211,21 @@ public class TVPlayer extends AppCompatActivity {
                     ) {
 
                         showPlaybackError(error);
+                    }
+                    
+                    @Override
+                    public void onPlaybackStateChanged(int state) {
+                        switch (state) {
+                            case Player.STATE_READY:
+                                TVInfoToast.showInfo(
+                                    TVPlayer.this,
+                                    channelId,
+                                    channelName,
+                                    streamUrl,
+                                    Toast.LENGTH_LONG
+                                );
+                                break;
+                        }
                     }
                 }
         );
@@ -376,6 +399,14 @@ public class TVPlayer extends AppCompatActivity {
         controller.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
 
         this.fullscreen = true;
+        
+        TVInfoToast.showInfo(
+            TVPlayer.this,
+            channelId,
+            channelName,
+            streamUrl,
+            Toast.LENGTH_LONG
+        );
     }
 
     private void exitFullScreen() {
@@ -421,5 +452,13 @@ public class TVPlayer extends AppCompatActivity {
 
         super.onDestroy();
     }
+    
+    @Override
+    public void onConfigurationChanged(Configuration config) {
+        super.onConfigurationChanged(config);
+        // Get Orientation
+        int orientation = config.orientation;
+    }
+    
     
 }
