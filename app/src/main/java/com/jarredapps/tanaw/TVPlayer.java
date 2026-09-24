@@ -1,13 +1,21 @@
 package com.jarredapps.tanaw;
 
+import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.content.Intent;
 import android.widget.TextView;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.view.View;
+import android.view.ViewGroup;
 
+import androidx.activity.EdgeToEdge;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.WindowInsetsControllerCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowCompat;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.MimeTypes;
 import androidx.media3.common.PlaybackException;
@@ -30,9 +38,11 @@ public class TVPlayer extends AppCompatActivity {
     private ExoPlayer player;
     private TextView channelNameText;
     private ImageButton backButton;
+    private LinearLayout bottomBar;
 
     private String streamUrl;
     private String channelName;
+    private boolean fullscreen;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -48,6 +58,7 @@ public class TVPlayer extends AppCompatActivity {
         playerView = findViewById(R.id.playerView);
         channelNameText = findViewById(R.id.channelNameText);
         backButton = findViewById(R.id.backButton);
+        bottomBar = findViewById(R.id.bottomBar);
 
         streamUrl = getIntent().getStringExtra(
                 PrefHelper.urlsIntent
@@ -82,16 +93,23 @@ public class TVPlayer extends AppCompatActivity {
 
         streamUrl = streamUrl.trim();
         
+        this.fullscreen = false;
+        
         OnBackPressedCallback callback = new OnBackPressedCallback(true /* enabled by default */) {
             @Override
             public void handleOnBackPressed() {
-                new MaterialAlertDialogBuilder(TVPlayer.this)
-                    .setTitle("Are you sure to stop?")
-                    .setNegativeButton("No", null)
-                    .setPositiveButton("Yes", (dialog, which) -> {
-                        finish();
-                    })
-                    .show();
+                if (fullscreen == true) {
+                    exitFullScreen();
+                }
+                else {
+                   new MaterialAlertDialogBuilder(TVPlayer.this)
+                        .setTitle("Are you sure to stop?")
+                        .setNegativeButton("No", null)
+                        .setPositiveButton("Yes", (dialog, which) -> {
+                            finish();
+                        })
+                        .show();
+                }
             }
         };
         getOnBackPressedDispatcher().addCallback(this, callback);
@@ -185,6 +203,14 @@ public class TVPlayer extends AppCompatActivity {
                     }
                 }
         );
+        
+        playerView.setFullscreenButtonClickListener(isFullScreen -> {
+            if (isFullScreen) {
+                enterFullScreen();
+            } else {
+                exitFullScreen();
+            }
+        });
 
         /*
          * Build MediaItem.
@@ -331,6 +357,51 @@ public class TVPlayer extends AppCompatActivity {
 
         builder.show();
     }
+    
+   private void enterFullScreen() {
+        // Change orientation to landscape
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+
+        // Hide the Action Bar/Toolbar
+        if (bottomBar != null) {
+            bottomBar.setVisibility(View.GONE);
+        }
+
+        // Hide Status Bar and Navigation Bars using WindowInsetsController
+        WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+        controller.hide(WindowInsetsCompat.Type.systemBars());
+        controller.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+
+        // Force PlayerView to take up the entire screen layout
+        ViewGroup.LayoutParams params = playerView.getLayoutParams();
+        params.width = ViewGroup.LayoutParams.MATCH_PARENT;
+        params.height = ViewGroup.LayoutParams.MATCH_PARENT;
+        playerView.setLayoutParams(params);
+        
+        this.fullscreen = true;
+    }
+
+    private void exitFullScreen() {
+        // Return orientation to portrait
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        
+        // Show Action Bar/Toolbar
+        if (bottomBar != null) {
+            bottomBar.setVisibility(View.VISIBLE);
+        }
+
+        // Restore Status Bar and Navigation Bars
+        WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+        controller.show(WindowInsetsCompat.Type.systemBars());
+
+        // Reset PlayerView to its original height (e.g., 250dp or original layout params)
+        ViewGroup.LayoutParams params = playerView.getLayoutParams();
+        params.width = ViewGroup.LayoutParams.MATCH_PARENT;
+        params.height = (int) (250 * getResources().getDisplayMetrics().density); // Example: 250dp height
+        playerView.setLayoutParams(params);
+        
+        this.fullscreen = false;
+    }
 
     @Override
     protected void onStop() {
@@ -359,6 +430,5 @@ public class TVPlayer extends AppCompatActivity {
 
         super.onDestroy();
     }
-    
     
 }

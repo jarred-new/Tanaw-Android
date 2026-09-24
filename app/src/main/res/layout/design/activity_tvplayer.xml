@@ -33,14 +33,14 @@
 		<org.appdevforall.codeonthego.layouteditor.editor.palette.buttons.ImageButtonDesign
 			android:id="@+id/backButton"
 			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
+			android:layout_height="match_parent"
 			android:src="@drawable/ic_back"
 			style="?android:attr/borderlessButtonStyle" />
 
 		<org.appdevforall.codeonthego.layouteditor.editor.palette.text.TextViewDesign
 			android:id="@+id/channelNameText"
 			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
+			android:layout_height="match_parent"
 			android:text="Channel"
 			android:textColor="?attr/colorOnSurface"
 			android:textSize="18sp"
