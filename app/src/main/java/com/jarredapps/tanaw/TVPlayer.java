@@ -94,24 +94,27 @@ public class TVPlayer extends AppCompatActivity {
         streamUrl = streamUrl.trim();
         
         this.fullscreen = false;
-        
-        OnBackPressedCallback callback = new OnBackPressedCallback(true /* enabled by default */) {
-            @Override
-            public void handleOnBackPressed() {
-                if (fullscreen == true) {
-                    exitFullScreen();
-                }
-                else {
-                   new MaterialAlertDialogBuilder(TVPlayer.this)
-                        .setTitle("Are you sure to stop?")
-                        .setNegativeButton("No", null)
-                        .setPositiveButton("Yes", (dialog, which) -> {
-                            finish();
-                        })
-                        .show();
-                }
-            }
-        };
+
+        OnBackPressedCallback callback =
+                new OnBackPressedCallback(true /* enabled by default */) {
+                    @Override
+                    public void handleOnBackPressed() {
+                        if (fullscreen == true) {
+                            //exitFullScreen();
+                            playerView.setFullscreenButtonState(false);
+                        } else {
+                            new MaterialAlertDialogBuilder(TVPlayer.this)
+                                    .setTitle("Are you sure to stop?")
+                                    .setNegativeButton("No", null)
+                                    .setPositiveButton(
+                                            "Yes",
+                                            (dialog, which) -> {
+                                                finish();
+                                            })
+                                    .show();
+                        }
+                    }
+                };
         getOnBackPressedDispatcher().addCallback(this, callback);
         
         backButton.setOnClickListener(v -> {
@@ -360,7 +363,7 @@ public class TVPlayer extends AppCompatActivity {
     
    private void enterFullScreen() {
         // Change orientation to landscape
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 
         // Hide the Action Bar/Toolbar
         if (bottomBar != null) {
@@ -372,18 +375,12 @@ public class TVPlayer extends AppCompatActivity {
         controller.hide(WindowInsetsCompat.Type.systemBars());
         controller.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
 
-        // Force PlayerView to take up the entire screen layout
-        ViewGroup.LayoutParams params = playerView.getLayoutParams();
-        params.width = ViewGroup.LayoutParams.MATCH_PARENT;
-        params.height = ViewGroup.LayoutParams.MATCH_PARENT;
-        playerView.setLayoutParams(params);
-        
         this.fullscreen = true;
     }
 
     private void exitFullScreen() {
         // Return orientation to portrait
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         
         // Show Action Bar/Toolbar
         if (bottomBar != null) {
@@ -394,12 +391,6 @@ public class TVPlayer extends AppCompatActivity {
         WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
         controller.show(WindowInsetsCompat.Type.systemBars());
 
-        // Reset PlayerView to its original height (e.g., 250dp or original layout params)
-        ViewGroup.LayoutParams params = playerView.getLayoutParams();
-        params.width = ViewGroup.LayoutParams.MATCH_PARENT;
-        params.height = (int) (250 * getResources().getDisplayMetrics().density); // Example: 250dp height
-        playerView.setLayoutParams(params);
-        
         this.fullscreen = false;
     }
 
