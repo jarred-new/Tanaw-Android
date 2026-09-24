@@ -13,6 +13,7 @@
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
 		android:text="0"
+        android:textStyle="bold"
 		android:padding="12dp"
 		android:textSize="16sp"
 		android:id="@+id/channelnumber" 
@@ -29,6 +30,7 @@
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:text="Name"
+            android:textStyle="normal"
 			android:textSize="12sp"
 			android:id="@+id/channelname"
             android:textColor="?attr/colorOnSurface" />
@@ -37,6 +39,7 @@
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:text="Url"
+            android:textStyle="normal"
 			android:id="@+id/channelurl"
             android:textColor="?attr/colorOnSurface" />
 

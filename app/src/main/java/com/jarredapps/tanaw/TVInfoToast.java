@@ -11,7 +11,7 @@ class TVInfoToast {
 
     public static void showInfo(
         Context context,
-        int id,
+        String id,
         String name,
         String url,
         int duration
@@ -28,7 +28,7 @@ class TVInfoToast {
         final TextView channelurl = layout.findViewById(R.id.channelurl);
         
         // Modify content dynamically
-        channelnumber.setText(String.valueOf(id));
+        channelnumber.setText(id);
         channelname.setText(name);
         channelurl.setText(url);
         

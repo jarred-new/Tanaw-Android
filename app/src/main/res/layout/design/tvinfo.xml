@@ -15,7 +15,8 @@
 		android:text="0"
 		android:padding="12dp"
 		android:textSize="16sp"
-		android:id="@+id/channelnumber" />
+		android:id="@+id/channelnumber" 
+        android:textColor="?attr/colorOnSurface"/>
 
 	<org.appdevforall.codeonthego.layouteditor.editor.palette.layouts.LinearLayoutDesign
 		android:id="@+id/linearlayout"
@@ -27,15 +28,17 @@
 		<org.appdevforall.codeonthego.layouteditor.editor.palette.text.TextViewDesign
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
-			android:text="TextView"
+			android:text="Name"
 			android:textSize="12sp"
-			android:id="@+id/channelname" />
+			android:id="@+id/channelname"
+            android:textColor="?attr/colorOnSurface" />
 
 		<org.appdevforall.codeonthego.layouteditor.editor.palette.text.TextViewDesign
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
-			android:text="TextView"
-			android:id="@+id/channelurl" />
+			android:text="Url"
+			android:id="@+id/channelurl"
+            android:textColor="?attr/colorOnSurface" />
 
 	</org.appdevforall.codeonthego.layouteditor.editor.palette.layouts.LinearLayoutDesign>
 

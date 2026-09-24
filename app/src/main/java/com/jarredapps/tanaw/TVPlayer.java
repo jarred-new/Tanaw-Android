@@ -10,8 +10,8 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-
 import android.widget.Toast;
+
 import androidx.activity.EdgeToEdge;
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.Nullable;
@@ -44,7 +44,7 @@ public class TVPlayer extends AppCompatActivity {
 
     private String streamUrl;
     private String channelName;
-    private int channelId;
+    private String channelId;
     
     private boolean fullscreen;
 
@@ -71,9 +71,9 @@ public class TVPlayer extends AppCompatActivity {
         channelName = getIntent().getStringExtra(
             PrefHelper.channelNameIntent
         );
-        channelId = getIntent().getIntExtra(
-            PrefHelper.channelIdIntent,
-            0
+        
+        channelId = getIntent().getStringExtra(
+            PrefHelper.channelIdIntent
         );
 
         if (channelName == null ||
