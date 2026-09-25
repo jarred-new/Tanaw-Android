@@ -1,5 +1,7 @@
 package com.jarredapps.tanaw;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.InputType;
 import android.view.Gravity;
@@ -9,22 +11,22 @@ import android.widget.GridView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.content.SharedPreferences;
-import android.content.Intent;
 
+import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.PopupMenu;
+import android.view.Menu;
+import androidx.appcompat.widget.SearchView;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-import androidx.appcompat.widget.SearchView;
 
+import com.google.android.material.color.DynamicColors;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
-import com.google.android.material.color.DynamicColors;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -99,7 +101,7 @@ public class MainActivity extends AppCompatActivity {
                 v -> showPlaylistDialog()
         );
 
-        // Channel click
+        // Channel click and long click
         channelGrid.setOnItemClickListener(
                 (parent, view, position, id) -> {
 
@@ -143,6 +145,19 @@ public class MainActivity extends AppCompatActivity {
                                 }
                         )
                         .show();
+                }
+        );
+        
+        channelGrid.setOnItemLongClickListener((parent, view, position, id) -> {
+
+                    Channel channel =
+                            channelAdapter.getItem(position);
+        
+                    if (channel != null) {
+                        showChannelPopupMenu(view, channel);
+                    }
+        
+                    return true;
                 }
         );
         
@@ -559,6 +574,106 @@ public class MainActivity extends AppCompatActivity {
                 start,
                 end
         );
+    }
+    
+    private void showChannelPopupMenu(
+        View anchor,
+        Channel channel
+    ) {
+    
+        PopupMenu popupMenu =
+                new PopupMenu(this, anchor);
+    
+        Menu menu = popupMenu.getMenu();
+    
+        menu.add(
+                Menu.NONE,
+                1,
+                Menu.NONE,
+                "Play"
+        );
+    
+        menu.add(
+                Menu.NONE,
+                2,
+                Menu.NONE,
+                "Record"
+        );
+    
+        menu.add(
+                Menu.NONE,
+                3,
+                Menu.NONE,
+                "Add to Favorites"
+        );
+    
+        menu.add(
+                Menu.NONE,
+                4,
+                Menu.NONE,
+                "Channel Info"
+        );
+    
+        menu.add(
+                Menu.NONE,
+                5,
+                Menu.NONE,
+                "Copy Stream URL"
+        );
+    
+        menu.add(
+                Menu.NONE,
+                6,
+                Menu.NONE,
+                "Share"
+        );
+    
+        menu.add(
+                Menu.NONE,
+                7,
+                Menu.NONE,
+                "Remove Channel"
+        );
+    
+        popupMenu.setOnMenuItemClickListener(
+                item -> {
+                    switch (item.getItemId()) {
+    
+                        case 1:
+                            playChannel(channel);
+                            return true;
+    
+                        case 2:
+                            recordChannel(channel);
+                            return true;
+    
+                        case 3:
+                            toggleFavorite(channel);
+                            return true;
+    
+                        case 4:
+                            showChannelInfo(channel);
+                            return true;
+    
+                        case 5:
+                            copyStreamUrl(channel);
+                            return true;
+    
+                        case 6:
+                            shareChannel(channel);
+                            return true;
+    
+                        case 7:
+                            removeChannel(channel);
+                            return true;
+    
+                        default:
+                            return false;
+                    }
+                }
+        );
+    
+        popupMenu.show();
     }
 
     // --------------------------------------------------
