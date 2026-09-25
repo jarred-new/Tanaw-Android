@@ -1,10 +1,13 @@
 package com.jarredapps.tanaw;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.InputType;
 import android.view.Gravity;
+import android.view.Menu;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.GridView;
@@ -15,11 +18,11 @@ import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.PopupMenu;
-import android.view.Menu;
 import androidx.appcompat.widget.SearchView;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.media3.common.MimeTypes;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.android.material.color.DynamicColors;
@@ -55,6 +58,8 @@ public class MainActivity extends AppCompatActivity {
     private SharedPreferences preferences;
     
     private Intent intentPlayer;
+    
+    protected int selectedId = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -107,6 +112,8 @@ public class MainActivity extends AppCompatActivity {
 
                     Channel channel =
                             channelAdapter.getItem(position);
+                            
+                    selectedId = position;        
 
                     /*Toast.makeText(
                             MainActivity.this,
@@ -117,7 +124,7 @@ public class MainActivity extends AppCompatActivity {
                     new MaterialAlertDialogBuilder(this)
                         .setTitle(channel.name)
                         .setMessage(
-                            "Channel Number: " + String.valueOf(id) + "\n" +
+                            "Channel Number: " + String.valueOf(selectedId) + "\n" +
                             "Name: " + channel.name + "\n" +
                             "Url: " + channel.url + "\n"
                         )
@@ -138,7 +145,7 @@ public class MainActivity extends AppCompatActivity {
                                             PrefHelper.channelNameIntent, channel.name
                                         );
                                         intentPlayer.putExtra(
-                                            PrefHelper.channelIdIntent, String.valueOf(id)
+                                            PrefHelper.channelIdIntent, String.valueOf(selectedId)
                                         );
                                         startActivity(intentPlayer);
                                     }
@@ -152,6 +159,8 @@ public class MainActivity extends AppCompatActivity {
 
                     Channel channel =
                             channelAdapter.getItem(position);
+                            
+                    selectedId = position;        
         
                     if (channel != null) {
                         showChannelPopupMenu(view, channel);
@@ -578,7 +587,7 @@ public class MainActivity extends AppCompatActivity {
     
     private void showChannelPopupMenu(
         View anchor,
-        Channel channel
+        final Channel channel
     ) {
     
         PopupMenu popupMenu =
@@ -597,40 +606,33 @@ public class MainActivity extends AppCompatActivity {
                 Menu.NONE,
                 2,
                 Menu.NONE,
-                "Record"
+                "Add to Favorites"
         );
     
         menu.add(
                 Menu.NONE,
                 3,
                 Menu.NONE,
-                "Add to Favorites"
+                "Channel Info"
         );
     
         menu.add(
                 Menu.NONE,
                 4,
                 Menu.NONE,
-                "Channel Info"
+                "Copy Stream URL"
         );
     
         menu.add(
                 Menu.NONE,
                 5,
                 Menu.NONE,
-                "Copy Stream URL"
-        );
-    
-        menu.add(
-                Menu.NONE,
-                6,
-                Menu.NONE,
                 "Share"
         );
     
         menu.add(
                 Menu.NONE,
-                7,
+                6,
                 Menu.NONE,
                 "Remove Channel"
         );
@@ -644,26 +646,22 @@ public class MainActivity extends AppCompatActivity {
                             return true;
     
                         case 2:
-                            recordChannel(channel);
-                            return true;
-    
-                        case 3:
                             toggleFavorite(channel);
                             return true;
     
-                        case 4:
+                        case 3:
                             showChannelInfo(channel);
                             return true;
     
-                        case 5:
+                        case 4:
                             copyStreamUrl(channel);
                             return true;
     
-                        case 6:
+                        case 5:
                             shareChannel(channel);
                             return true;
     
-                        case 7:
+                        case 6:
                             removeChannel(channel);
                             return true;
     
@@ -674,6 +672,137 @@ public class MainActivity extends AppCompatActivity {
         );
     
         popupMenu.show();
+    }
+    
+    private void playChannel(final Channel channel) {
+        if (intentPlayer != null) {
+            intentPlayer.setClass(this, TVPlayer.class);
+            intentPlayer.putExtra(
+                PrefHelper.urlsIntent, channel.url
+            );
+            intentPlayer.putExtra(
+                PrefHelper.channelNameIntent, channel.name
+            );
+            intentPlayer.putExtra(
+                PrefHelper.channelIdIntent, String.valueOf(selectedId)
+            );
+            startActivity(intentPlayer);
+        }
+    }
+    
+    private void toggleFavorite(final Channel channel) {
+        // TODO: Toggle Favorite
+    }
+
+    private void showChannelInfo(final Channel channel) {
+        new MaterialAlertDialogBuilder(this)
+                        .setTitle(channel.name)
+                        .setMessage(
+                            "Channel Number: " + String.valueOf(selectedId) + "\n" +
+                            "Name: " + channel.name + "\n" +
+                            "Url: " + channel.url + "\n"
+                        )
+                        .setNegativeButton(
+                                "Cancel",
+                                null
+                        )
+                        .setPositiveButton(
+                                "Play",
+                                (dialog, which) -> {
+                                    // Open Media3 player here.
+                                    if (intentPlayer != null) {
+                                        intentPlayer.setClass(this, TVPlayer.class);
+                                        intentPlayer.putExtra(
+                                            PrefHelper.urlsIntent, channel.url
+                                        );
+                                        intentPlayer.putExtra(
+                                            PrefHelper.channelNameIntent, channel.name
+                                        );
+                                        intentPlayer.putExtra(
+                                            PrefHelper.channelIdIntent, String.valueOf(selectedId)
+                                        );
+                                        startActivity(intentPlayer);
+                                    }
+                                }
+                        )
+                        .show();
+    }
+    
+    private void copyStreamUrl(final Channel channel) {
+        ClipboardManager clipboard =
+            (ClipboardManager) getSystemService(
+                    CLIPBOARD_SERVICE
+            );
+
+            ClipData clip =
+                    ClipData.newPlainText(
+                            "Stream URL",
+                            channel.url
+                    );
+        
+            clipboard.setPrimaryClip(clip);
+        
+            Toast.makeText(
+                    this,
+                    "Stream URL copied",
+                    Toast.LENGTH_SHORT
+            ).show();
+    }
+    
+    private void shareChannel(final Channel channel) {
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.setType("text/plain");
+        shareIntent.putExtra(Intent.EXTRA_TEXT, 
+            channel.url
+        );
+        Intent chooser = Intent.createChooser(shareIntent, "Share IPTV URL via:");
+        if (shareIntent.resolveActivity(getPackageManager()) != null) {
+            startActivity(chooser);
+        }
+    }
+    
+    private void removeChannel(final Channel channel) {
+        new MaterialAlertDialogBuilder(this)
+            .setTitle("Remove Channel?")
+            .setMessage(
+                    "Remove \"" +
+                    channel.name +
+                    "\" from your playlist?"
+            )
+            .setNegativeButton(
+                    "Cancel",
+                    null
+            )
+            .setPositiveButton(
+                    "Remove",
+                    (dialog, which) -> {
+                        if (channels == null || channel == null) {
+                            return;
+                        }
+                    
+                        boolean removed = channels.remove(channel);
+                    
+                        if (!removed) {
+                            Toast.makeText(
+                                    this,
+                                    "Channel was not found",
+                                    Toast.LENGTH_SHORT
+                            ).show();
+                    
+                            return;
+                        }
+                    
+                        channelAdapter.notifyDataSetChanged();
+                    
+                        //savePlaylist();
+                    
+                        Toast.makeText(
+                                this,
+                                channel.name + " removed",
+                                Toast.LENGTH_SHORT
+                        ).show();
+                    }
+            ).show();
     }
 
     // --------------------------------------------------
