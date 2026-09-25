@@ -21,32 +21,46 @@
         app:layout_constraintEnd_toEndOf="parent" />
 
 	<LinearLayout
-		android:id="@+id/bottomBar"
-		android:layout_width="0dp"
-		android:layout_height="wrap_content"
-		android:padding="16dp"
-		app:layout_constraintBottom_toBottomOf="parent"
-		app:layout_constraintStart_toStartOf="parent"
-		app:layout_constraintEnd_toEndOf="parent"
-		android:gravity="left|center_horizontal">
+        android:id="@+id/bottomBar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+    
+        <ImageButton
+            android:id="@+id/backButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_back"
+            style="?android:attr/borderlessButtonStyle" />
+    
+        <TextView
+            android:id="@+id/channelNameText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Channel"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginStart="8dp" />
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+    
+        <ImageButton
+            android:id="@+id/pipButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_picture_in_picture"
+            style="?android:attr/borderlessButtonStyle" />
+    
+    </LinearLayout>
 
-		<ImageButton
-			android:id="@+id/backButton"
-			android:layout_width="wrap_content"
-			android:layout_height="match_parent"
-			android:src="@drawable/ic_back"
-			style="?android:attr/borderlessButtonStyle" />
 
-		<TextView
-			android:id="@+id/channelNameText"
-			android:layout_width="wrap_content"
-			android:layout_height="match_parent"
-			android:text="Channel"
-			android:textColor="?attr/colorOnSurface"
-			android:textSize="18sp"
-			android:textStyle="bold"
-            android:gravity="center_vertical" />
-
-	</LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

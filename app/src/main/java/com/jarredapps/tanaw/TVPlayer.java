@@ -2,8 +2,12 @@ package com.jarredapps.tanaw;
 
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
+import android.util.Rational;
+import android.app.PictureInPictureParams;
 import android.content.res.Configuration;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
@@ -41,6 +45,7 @@ public class TVPlayer extends AppCompatActivity {
     private TextView channelNameText;
     private ImageButton backButton;
     private LinearLayout bottomBar;
+    private ImageButton pipButton;
 
     private String streamUrl;
     private String channelName;
@@ -63,6 +68,7 @@ public class TVPlayer extends AppCompatActivity {
         channelNameText = findViewById(R.id.channelNameText);
         backButton = findViewById(R.id.backButton);
         bottomBar = findViewById(R.id.bottomBar);
+        pipButton = findViewById(R.id.pipButton);
 
         streamUrl = getIntent().getStringExtra(
             PrefHelper.urlsIntent
@@ -134,6 +140,20 @@ public class TVPlayer extends AppCompatActivity {
                 })
                 .show();
         });
+        
+        if (getPackageManager().hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE) && Build.VERSION.SDK_INT >= 26) {
+            pipButton.setVisibility(View.VISIBLE);
+            pipButton.setOnClickListener(v -> {
+                Rational aspectRatio = new Rational(16, 9); // Set your video aspect ratio
+                PictureInPictureParams params = new PictureInPictureParams.Builder()
+                        .setAspectRatio(aspectRatio)
+                        .build();
+                enterPictureInPictureMode(params);
+            });
+        }
+        else {
+            pipButton.setVisibility(View.GONE);
+        }
     }
 
     @Override
@@ -460,5 +480,17 @@ public class TVPlayer extends AppCompatActivity {
         int orientation = config.orientation;
     }
     
-    
+    @Override
+    public void onPictureInPictureModeChanged(boolean isInPictureInPictureMode, Configuration newConfig) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig);
+        if (isInPictureInPictureMode) {
+            // Hide controllers and extra UI elements
+            playerView.hideController();
+            bottomBar.setVisibility(View.GONE);
+        } else {
+            // Show controllers back when user returns to full screen
+            playerView.showController();
+            bottomBar.setVisibility(View.VISIBLE);
+        }
+    }
 }
