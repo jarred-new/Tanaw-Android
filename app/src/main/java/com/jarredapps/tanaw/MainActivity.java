@@ -326,7 +326,7 @@ public class MainActivity extends AppCompatActivity {
                 "Loading playlist..."
         );
 
-        channelGrid.setVisibility(View.INVISIBLE);
+        //channelGrid.setVisibility(View.INVISIBLE);
         _fab.setEnabled(false);
         if (swipeRefreshLayout.isRefreshing()) {
             swipeRefreshLayout.setRefreshing(false);
@@ -340,7 +340,7 @@ public class MainActivity extends AppCompatActivity {
             runOnUiThread(() -> {
 
                 _fab.setEnabled(true);
-                channelGrid.setVisibility(View.VISIBLE);
+                //channelGrid.setVisibility(View.VISIBLE);
 
                 if (playlist.error != null) {
 
@@ -790,7 +790,7 @@ public class MainActivity extends AppCompatActivity {
                     
                         Toast.makeText(
                                 this,
-                                channel.name + " removed",
+                                channel.name + " removed\nPlease Refresh...",
                                 Toast.LENGTH_SHORT
                         ).show();
                     }
@@ -811,7 +811,7 @@ public class MainActivity extends AppCompatActivity {
         String json =
                 preferences.getString(
                         PrefHelper.urls,
-                        null
+                        ""
                 );
     
         if (json == null || json.isEmpty()) {
@@ -823,12 +823,54 @@ public class MainActivity extends AppCompatActivity {
         Type type =
                 new TypeToken<ArrayList<Channel>>() {}.getType();
     
-        ArrayList<Channel> savedChannels =
+        final ArrayList<Channel> savedChannels =
                 gson.fromJson(json, type);
     
         if (savedChannels != null) {
-            channels.clear();
-            channels.addAll(savedChannels);
+            txtStatus.setText(
+                "Loading playlist..."
+        );
+
+        //channelGrid.setVisibility(View.INVISIBLE);
+        _fab.setEnabled(false);
+        if (swipeRefreshLayout.isRefreshing()) {
+            swipeRefreshLayout.setRefreshing(false);
+        }
+
+        executor.execute(() -> {
+            runOnUiThread(() -> {
+
+                _fab.setEnabled(true);
+                //channelGrid.setVisibility(View.VISIBLE);
+
+//                if (savedChannels != null) {
+//
+//                    txtStatus.setText(
+//                            "Failed to load playlist"
+//                    );
+//
+//                    Toast.makeText(
+//                            MainActivity.this,
+//                            "playlist.error",
+//                            Toast.LENGTH_LONG
+//                    ).show();
+//
+//                    return;
+//                }
+
+                channels.clear();
+                channels.addAll(savedChannels);
+                
+                channelAdapter.setChannels(channels);
+
+                txtStatus.setText(
+                        channels.size() +
+                        " channels loaded"
+                );
+                
+                // No need to use savePlaylist() here...
+            });
+        });
         }
     }
     
