@@ -175,10 +175,10 @@ public class MainActivity extends AppCompatActivity {
         
         // Refresh to reload channels
         swipeRefreshLayout.setOnRefreshListener(() -> {
-            /*String urlRefresh = preferences.getString(
+            String urlRefresh = preferences.getString(
                 PrefHelper.urls,
                 ""
-            );*/
+            );
             
             if (!savedUrl.isEmpty()) {
                 //loadPlaylist(urlRefresh);
@@ -810,7 +810,7 @@ public class MainActivity extends AppCompatActivity {
     private void loadSavedPlaylist() {
         String json =
                 preferences.getString(
-                        "playlist",
+                        PrefHelper.urls,
                         null
                 );
     
