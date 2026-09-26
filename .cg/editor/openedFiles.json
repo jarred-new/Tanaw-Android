@@ -1,0 +1,36 @@
+{
+  "allFiles": [
+    {
+      "file": "/storage/emulated/0/Documents/Tanaw-Android/app/src/main/java/com/jarredapps/tanaw/MainActivity.java",
+      "selection": {
+        "end": {
+          "column": 27,
+          "index": 23312,
+          "line": 802
+        },
+        "start": {
+          "column": 27,
+          "index": 23312,
+          "line": 802
+        }
+      }
+    },
+    {
+      "file": "/storage/emulated/0/Documents/Tanaw-Android/app/build.gradle",
+      "selection": {
+        "end": {
+          "column": 53,
+          "index": 1452,
+          "line": 47
+        },
+        "start": {
+          "column": 53,
+          "index": 1452,
+          "line": 47
+        }
+      }
+    }
+  ],
+  "projectPath": "/storage/emulated/0/Documents/Tanaw-Android",
+  "selectedFile": "/storage/emulated/0/Documents/Tanaw-Android/app/src/main/java/com/jarredapps/tanaw/MainActivity.java"
+}

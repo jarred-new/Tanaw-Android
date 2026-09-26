@@ -31,8 +31,11 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
+import com.google.gson.reflect.TypeToken;
+import com.google.gson.Gson;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
@@ -74,7 +77,6 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
         
-        
         txtStatus = findViewById(R.id.txtStatus);
         searchView = findViewById(R.id.searchView);
         swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
@@ -94,7 +96,8 @@ public class MainActivity extends AppCompatActivity {
         );
         
         if (!savedUrl.isEmpty()) {
-            loadPlaylist(savedUrl);
+            //loadPlaylist(savedUrl);
+            loadSavedPlaylist();
         }
 
         // GridView adapter
@@ -172,13 +175,14 @@ public class MainActivity extends AppCompatActivity {
         
         // Refresh to reload channels
         swipeRefreshLayout.setOnRefreshListener(() -> {
-            String urlRefresh = preferences.getString(
+            /*String urlRefresh = preferences.getString(
                 PrefHelper.urls,
                 ""
-            );
+            );*/
             
             if (!savedUrl.isEmpty()) {
-                loadPlaylist(urlRefresh);
+                //loadPlaylist(urlRefresh);
+                loadSavedPlaylist();
             }
             else {
                 swipeRefreshLayout.setRefreshing(false);
@@ -363,7 +367,8 @@ public class MainActivity extends AppCompatActivity {
                         " channels loaded"
                 );
                 
-                preferences.edit().putString(PrefHelper.urls, playlistUrl).apply();
+                //preferences.edit().putString(PrefHelper.urls, playlistUrl).apply();
+                savePlaylist();
             });
         });
     }
@@ -709,20 +714,7 @@ public class MainActivity extends AppCompatActivity {
                         .setPositiveButton(
                                 "Play",
                                 (dialog, which) -> {
-                                    // Open Media3 player here.
-                                    if (intentPlayer != null) {
-                                        intentPlayer.setClass(this, TVPlayer.class);
-                                        intentPlayer.putExtra(
-                                            PrefHelper.urlsIntent, channel.url
-                                        );
-                                        intentPlayer.putExtra(
-                                            PrefHelper.channelNameIntent, channel.name
-                                        );
-                                        intentPlayer.putExtra(
-                                            PrefHelper.channelIdIntent, String.valueOf(selectedId)
-                                        );
-                                        startActivity(intentPlayer);
-                                    }
+                                    playChannel(channel);
                                 }
                         )
                         .show();
@@ -794,7 +786,7 @@ public class MainActivity extends AppCompatActivity {
                     
                         channelAdapter.notifyDataSetChanged();
                     
-                        //savePlaylist();
+                        savePlaylist();
                     
                         Toast.makeText(
                                 this,
@@ -805,6 +797,41 @@ public class MainActivity extends AppCompatActivity {
             ).show();
     }
 
+    private void savePlaylist() {
+        Gson gson = new Gson();
+
+        String json = gson.toJson(channels);
+    
+        preferences.edit().putString(
+            PrefHelper.urls, json
+        ).apply();
+    }
+    
+    private void loadSavedPlaylist() {
+        String json =
+                preferences.getString(
+                        "playlist",
+                        null
+                );
+    
+        if (json == null || json.isEmpty()) {
+            return;
+        }
+    
+        Gson gson = new Gson();
+    
+        Type type =
+                new TypeToken<ArrayList<Channel>>() {}.getType();
+    
+        ArrayList<Channel> savedChannels =
+                gson.fromJson(json, type);
+    
+        if (savedChannels != null) {
+            channels.clear();
+            channels.addAll(savedChannels);
+        }
+    }
+    
     // --------------------------------------------------
     // Channel adapter
     // --------------------------------------------------
