@@ -89,6 +89,7 @@ public class TVPlayer extends AppCompatActivity {
         }
         
         channelNameText.setText(channelName);
+        channelNameText.setSelected(true);
 
         /*
          * Check stream URL.

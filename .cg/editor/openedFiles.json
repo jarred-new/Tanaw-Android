@@ -4,14 +4,14 @@
       "file": "/storage/emulated/0/Documents/Tanaw-Android/app/src/main/java/com/jarredapps/tanaw/MainActivity.java",
       "selection": {
         "end": {
-          "column": 27,
-          "index": 23312,
-          "line": 802
+          "column": 75,
+          "index": 23152,
+          "line": 792
         },
         "start": {
-          "column": 27,
-          "index": 23312,
-          "line": 802
+          "column": 75,
+          "index": 23152,
+          "line": 792
         }
       }
     },
@@ -29,8 +29,38 @@
           "line": 47
         }
       }
+    },
+    {
+      "file": "/storage/emulated/0/Documents/Tanaw-Android/app/src/main/java/com/jarredapps/tanaw/PrefHelper.java",
+      "selection": {
+        "end": {
+          "column": 0,
+          "index": 0,
+          "line": 0
+        },
+        "start": {
+          "column": 0,
+          "index": 0,
+          "line": 0
+        }
+      }
+    },
+    {
+      "file": "/storage/emulated/0/Documents/Tanaw-Android/app/src/main/java/com/jarredapps/tanaw/TVPlayer.java",
+      "selection": {
+        "end": {
+          "column": 0,
+          "index": 0,
+          "line": 0
+        },
+        "start": {
+          "column": 0,
+          "index": 0,
+          "line": 0
+        }
+      }
     }
   ],
   "projectPath": "/storage/emulated/0/Documents/Tanaw-Android",
-  "selectedFile": "/storage/emulated/0/Documents/Tanaw-Android/app/src/main/java/com/jarredapps/tanaw/MainActivity.java"
+  "selectedFile": "/storage/emulated/0/Documents/Tanaw-Android/app/src/main/java/com/jarredapps/tanaw/TVPlayer.java"
 }
