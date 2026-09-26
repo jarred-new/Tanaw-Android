@@ -4,14 +4,14 @@
       "file": "/storage/emulated/0/Documents/Tanaw-Android/app/src/main/java/com/jarredapps/tanaw/MainActivity.java",
       "selection": {
         "end": {
-          "column": 75,
-          "index": 23152,
-          "line": 792
+          "column": 24,
+          "index": 228,
+          "line": 7
         },
         "start": {
-          "column": 75,
-          "index": 23152,
-          "line": 792
+          "column": 24,
+          "index": 228,
+          "line": 7
         }
       }
     },
@@ -50,6 +50,36 @@
       "selection": {
         "end": {
           "column": 0,
+          "index": 2755,
+          "line": 86
+        },
+        "start": {
+          "column": 0,
+          "index": 2755,
+          "line": 86
+        }
+      }
+    },
+    {
+      "file": "/storage/emulated/0/Documents/Tanaw-Android/app/src/main/res/layout/activity_tvplayer.xml",
+      "selection": {
+        "end": {
+          "column": 24,
+          "index": 1590,
+          "line": 41
+        },
+        "start": {
+          "column": 24,
+          "index": 1590,
+          "line": 41
+        }
+      }
+    },
+    {
+      "file": "/storage/emulated/0/Documents/Tanaw-Android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml",
+      "selection": {
+        "end": {
+          "column": 0,
           "index": 0,
           "line": 0
         },
@@ -59,8 +89,53 @@
           "line": 0
         }
       }
+    },
+    {
+      "file": "/storage/emulated/0/Documents/Tanaw-Android/app/src/main/res/layout/activity_main.xml",
+      "selection": {
+        "end": {
+          "column": 58,
+          "index": 4670,
+          "line": 133
+        },
+        "start": {
+          "column": 58,
+          "index": 4670,
+          "line": 133
+        }
+      }
+    },
+    {
+      "file": "/storage/emulated/0/Documents/Tanaw-Android/app/src/main/res/drawable/ic_link_circle_outline.xml",
+      "selection": {
+        "end": {
+          "column": 200,
+          "index": 258,
+          "line": 1
+        },
+        "start": {
+          "column": 200,
+          "index": 258,
+          "line": 1
+        }
+      }
+    },
+    {
+      "file": "/storage/emulated/0/Documents/Tanaw-Android/app/src/main/res/drawable/ic_share_outline.xml",
+      "selection": {
+        "end": {
+          "column": 200,
+          "index": 258,
+          "line": 1
+        },
+        "start": {
+          "column": 200,
+          "index": 258,
+          "line": 1
+        }
+      }
     }
   ],
   "projectPath": "/storage/emulated/0/Documents/Tanaw-Android",
-  "selectedFile": "/storage/emulated/0/Documents/Tanaw-Android/app/src/main/java/com/jarredapps/tanaw/TVPlayer.java"
+  "selectedFile": "/storage/emulated/0/Documents/Tanaw-Android/app/src/main/java/com/jarredapps/tanaw/MainActivity.java"
 }

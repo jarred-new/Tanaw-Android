@@ -5,9 +5,11 @@ import android.content.ClipboardManager;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Build;
 import android.text.InputType;
 import android.view.Gravity;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.GridView;
@@ -30,9 +32,9 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
-
-import com.google.gson.reflect.TypeToken;
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
@@ -600,47 +602,54 @@ public class MainActivity extends AppCompatActivity {
     
         Menu menu = popupMenu.getMenu();
     
-        menu.add(
+        MenuItem playMenu = menu.add(
                 Menu.NONE,
                 1,
                 Menu.NONE,
                 "Play"
         );
     
-        menu.add(
+        MenuItem favoritesMenu = menu.add(
                 Menu.NONE,
                 2,
                 Menu.NONE,
                 "Add to Favorites"
         );
     
-        menu.add(
+        MenuItem infoMenu = menu.add(
                 Menu.NONE,
                 3,
                 Menu.NONE,
                 "Channel Info"
         );
     
-        menu.add(
+        MenuItem copyMenu = menu.add(
                 Menu.NONE,
                 4,
                 Menu.NONE,
                 "Copy Stream URL"
         );
     
-        menu.add(
+        MenuItem shareMenu = menu.add(
                 Menu.NONE,
                 5,
                 Menu.NONE,
                 "Share"
         );
     
-        menu.add(
+        MenuItem removeMenu = menu.add(
                 Menu.NONE,
                 6,
                 Menu.NONE,
                 "Remove Channel"
         );
+        
+        playMenu.setIcon(R.drawable.ic_play_circle_outline);
+        favoritesMenu.setIcon(R.drawable.ic_heart_outline);
+        infoMenu.setIcon(R.drawable.ic_information_slab_circle_outline);
+        copyMenu.setIcon(R.drawable.ic_link_circle_outline);
+        shareMenu.setIcon(R.drawable.ic_share_outline);
+        removeMenu.setIcon(R.drawable.ic_delete_forever);
     
         popupMenu.setOnMenuItemClickListener(
                 item -> {
@@ -675,6 +684,10 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
         );
+    
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            popupMenu.setForceShowIcon(true);
+        }
     
         popupMenu.show();
     }
