@@ -31,6 +31,9 @@
             android:supportsPictureInPicture="true"
             android:exported="true">
         </activity>
+        <activity
+            android:name=".FavoritesActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

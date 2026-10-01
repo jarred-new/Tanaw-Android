@@ -111,6 +111,10 @@ public class MainActivity extends AppCompatActivity {
                 v -> showPlaylistDialog()
         );
 
+        findViewById(R.id.favoritesButton).setOnClickListener(
+                v -> startActivity(new Intent(this, FavoritesActivity.class))
+        );
+
         // Channel click and long click
         channelGrid.setOnItemClickListener(
                 (parent, view, position, id) -> {
@@ -709,7 +713,38 @@ public class MainActivity extends AppCompatActivity {
     }
     
     private void toggleFavorite(final Channel channel) {
-        // TODO: Toggle Favorite
+                String savedFavorites = preferences.getString(PrefHelper.favorites, "");
+                Type type = new TypeToken<ArrayList<Channel>>() {}.getType();
+                ArrayList<Channel> favoriteChannels = savedFavorites.isEmpty()
+                                ? new ArrayList<>()
+                                : new Gson().fromJson(savedFavorites, type);
+
+                if (favoriteChannels == null) {
+                        favoriteChannels = new ArrayList<>();
+                }
+
+                boolean removed = false;
+                for (int index = 0; index < favoriteChannels.size(); index++) {
+                        if (favoriteChannels.get(index).url.equals(channel.url)) {
+                                favoriteChannels.remove(index);
+                                removed = true;
+                                break;
+                        }
+                }
+
+                if (!removed) {
+                        favoriteChannels.add(channel);
+                }
+
+                preferences.edit()
+                                .putString(PrefHelper.favorites, new Gson().toJson(favoriteChannels))
+                                .apply();
+
+                Toast.makeText(
+                                this,
+                                removed ? "Removed from Favorites" : "Added to Favorites",
+                                Toast.LENGTH_SHORT
+                ).show();
     }
 
     private void showChannelInfo(final Channel channel) {
