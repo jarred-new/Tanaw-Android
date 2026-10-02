@@ -36,6 +36,10 @@ public class FavoritesActivity extends AppCompatActivity {
         DynamicColors.applyToActivityIfAvailable(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_favorites);
+        
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.favoritesLayout), (v, insets) -> {
+            return insets;
+        });
 
         txtStatus = findViewById(R.id.txtStatus_Favorites);
         searchView = findViewById(R.id.searchView_Favorites);

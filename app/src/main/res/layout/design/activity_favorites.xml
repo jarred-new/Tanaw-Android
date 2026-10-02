@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<androidx.constraintlayout.widget.ConstraintLayout
+<org.appdevforall.codeonthego.layouteditor.editor.palette.layouts.ConstraintLayoutDesign
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
 
@@ -13,7 +13,7 @@
     <!-- TOP TOOLBAR                                -->
     <!-- ========================================== -->
 
-    <LinearLayout
+    <org.appdevforall.codeonthego.layouteditor.editor.palette.layouts.LinearLayoutDesign
         android:id="@+id/toolbar_Favorites"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -27,7 +27,7 @@
         app:layout_constraintEnd_toEndOf="parent">
 
         <!-- Back button -->
-        <ImageButton
+        <org.appdevforall.codeonthego.layouteditor.editor.palette.buttons.ImageButtonDesign
             android:id="@+id/backButton_Favorites"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -36,13 +36,13 @@
 
         <!-- Title + status -->
 
-        <LinearLayout
+        <org.appdevforall.codeonthego.layouteditor.editor.palette.layouts.LinearLayoutDesign
             android:id="@+id/titleAndStatus_Favorites"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <TextView
+            <org.appdevforall.codeonthego.layouteditor.editor.palette.text.TextViewDesign
                 android:id="@+id/txtTitle_Favorites"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -51,7 +51,7 @@
                 android:textSize="28sp"
                 android:textStyle="bold" />
 
-            <TextView
+            <org.appdevforall.codeonthego.layouteditor.editor.palette.text.TextViewDesign
                 android:id="@+id/txtStatus_Favorites"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -60,18 +60,18 @@
                 android:textColor="?attr/colorOnSurfaceVariant"
                 android:textSize="14sp" />
 
-        </LinearLayout>
+        </org.appdevforall.codeonthego.layouteditor.editor.palette.layouts.LinearLayoutDesign>
 
         <!-- Push search button to the right -->
 
-        <!--<Space
+        <!--<android.widget.Space
             android:layout_width="0dp"
             android:layout_height="1dp"
             android:layout_weight="1" />-->
 
         <!-- Search -->
 
-        <androidx.appcompat.widget.SearchView
+        <org.appdevforall.codeonthego.layouteditor.editor.palette.widgets.SearchViewDesign
             android:id="@+id/searchView_Favorites"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -80,7 +80,7 @@
             android:background="@android:color/transparent" 
             android:layout_gravity="center_horizontal|right" />
         
-    </LinearLayout>
+    </org.appdevforall.codeonthego.layouteditor.editor.palette.layouts.LinearLayoutDesign>
 
 
     <!-- ========================================== -->
@@ -101,7 +101,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <GridView
+        <org.appdevforall.codeonthego.layouteditor.editor.palette.legacy.GridViewDesign
             android:id="@+id/channelGrid_Favorites"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -118,4 +118,4 @@
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+</org.appdevforall.codeonthego.layouteditor.editor.palette.layouts.ConstraintLayoutDesign>

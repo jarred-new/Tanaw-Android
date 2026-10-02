@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<androidx.constraintlayout.widget.ConstraintLayout
+<org.appdevforall.codeonthego.layouteditor.editor.palette.layouts.ConstraintLayoutDesign
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
 
-    android:id="@+id/favoritesLayout"
+    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="?attr/colorSurface">
@@ -13,11 +13,11 @@
     <!-- TOP TOOLBAR                                -->
     <!-- ========================================== -->
 
-    <LinearLayout
-        android:id="@+id/toolbar_Favorites"
+    <org.appdevforall.codeonthego.layouteditor.editor.palette.layouts.LinearLayoutDesign
+        android:id="@+id/toolbar"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="15dp"
+        android:layout_marginStart="20dp"
         android:layout_marginTop="34dp"
         android:layout_marginEnd="13dp"
         android:orientation="horizontal"
@@ -26,53 +26,55 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <!-- Back button -->
-        <ImageButton
-            android:id="@+id/backButton_Favorites"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_back"
-            style="?android:attr/borderlessButtonStyle" />
-
         <!-- Title + status -->
 
-        <LinearLayout
-            android:id="@+id/titleAndStatus_Favorites"
+        <org.appdevforall.codeonthego.layouteditor.editor.palette.layouts.LinearLayoutDesign
+            android:id="@+id/titleAndStatus"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/txtTitle_Favorites"
+            <org.appdevforall.codeonthego.layouteditor.editor.palette.text.TextViewDesign
+                android:id="@+id/txtTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Favorites"
+                android:text="TANAW"
                 android:textColor="?attr/colorOnSurface"
                 android:textSize="28sp"
                 android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/txtStatus_Favorites"
+            <org.appdevforall.codeonthego.layouteditor.editor.palette.text.TextViewDesign
+                android:id="@+id/txtStatus"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:text="No favorite channels"
+                android:text="No channels loaded"
                 android:textColor="?attr/colorOnSurfaceVariant"
                 android:textSize="14sp" />
 
-        </LinearLayout>
+        </org.appdevforall.codeonthego.layouteditor.editor.palette.layouts.LinearLayoutDesign>
 
         <!-- Push search button to the right -->
 
-        <!--<Space
+        <android.widget.Space
             android:layout_width="0dp"
             android:layout_height="1dp"
-            android:layout_weight="1" />-->
+            android:layout_weight="1" />
+
+        <org.appdevforall.codeonthego.layouteditor.editor.palette.buttons.ImageButtonDesign
+            android:id="@+id/favoritesButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Favorites"
+            android:padding="12dp"
+            android:src="@drawable/ic_heart_outline"
+            android:tint="?attr/colorOnSurface" />
 
         <!-- Search -->
 
-        <androidx.appcompat.widget.SearchView
-            android:id="@+id/searchView_Favorites"
+        <org.appdevforall.codeonthego.layouteditor.editor.palette.widgets.SearchViewDesign
+            android:id="@+id/searchView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:iconifiedByDefault="true"
@@ -80,7 +82,7 @@
             android:background="@android:color/transparent" 
             android:layout_gravity="center_horizontal|right" />
         
-    </LinearLayout>
+    </org.appdevforall.codeonthego.layouteditor.editor.palette.layouts.LinearLayoutDesign>
 
 
     <!-- ========================================== -->
@@ -88,7 +90,7 @@
     <!-- ========================================== -->
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-        android:id="@+id/swipeRefreshLayout_Favorites"
+        android:id="@+id/swipeRefreshLayout"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginStart="16dp"
@@ -96,13 +98,13 @@
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
 
-        app:layout_constraintTop_toBottomOf="@id/toolbar_Favorites"
+        app:layout_constraintTop_toBottomOf="@id/toolbar"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <GridView
-            android:id="@+id/channelGrid_Favorites"
+        <org.appdevforall.codeonthego.layouteditor.editor.palette.legacy.GridViewDesign
+            android:id="@+id/channelGrid"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
 
@@ -118,4 +120,27 @@
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- ========================================== -->
+    <!-- ADD PLAYLIST FAB                           -->
+    <!-- ========================================== -->
+
+    <org.appdevforall.codeonthego.layouteditor.editor.palette.buttons.FloatingActionButtonDesign
+        android:id="@+id/_fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="24dp"
+
+        android:contentDescription="Add playlist"
+        android:src="@android:drawable/ic_input_add"
+
+        app:backgroundTint="?attr/colorPrimaryContainer"
+        app:tint="?attr/colorOnPrimaryContainer"
+        app:elevation="8dp"
+
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+</org.appdevforall.codeonthego.layouteditor.editor.palette.layouts.ConstraintLayoutDesign>
