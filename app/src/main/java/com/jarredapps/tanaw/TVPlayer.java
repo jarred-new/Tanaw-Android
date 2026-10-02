@@ -55,10 +55,9 @@ public class TVPlayer extends AppCompatActivity {
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
-        
         setTheme(R.style.Theme_Tanaw_Player);
-
         DynamicColors.applyIfAvailable(this);
+        EdgeToEdge.enable(this);
         
         super.onCreate(savedInstanceState);
 

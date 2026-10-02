@@ -9,6 +9,7 @@ import android.widget.ArrayAdapter;
 import android.widget.GridView;
 import android.widget.TextView;
 
+import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 import androidx.core.view.ViewCompat;
@@ -35,6 +36,8 @@ public class FavoritesActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         setTheme(R.style.Theme_Tanaw);
         DynamicColors.applyToActivityIfAvailable(this);
+        EdgeToEdge.enable(this);
+        
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_favorites);
         
