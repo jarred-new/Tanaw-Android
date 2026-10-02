@@ -17,6 +17,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import android.widget.ViewAnimator;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.PopupMenu;
@@ -49,6 +50,9 @@ public class MainActivity extends AppCompatActivity {
     private TextView txtStatus;
     private GridView channelGrid;
     private FloatingActionButton _fab;
+    private FloatingActionButton fab_add;
+    private FloatingActionButton fab_import;
+    private FloatingActionButton fab_export;
     private SwipeRefreshLayout swipeRefreshLayout;
     private SearchView searchView;
     
@@ -65,6 +69,9 @@ public class MainActivity extends AppCompatActivity {
     private Intent intentPlayer;
     
     protected int selectedId = 0;
+    
+    protected boolean isFabExpanded = false;
+    protected int fabExpansionClicks = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,7 +90,11 @@ public class MainActivity extends AppCompatActivity {
         searchView = findViewById(R.id.searchView);
         swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
         channelGrid = findViewById(R.id.channelGrid);
+        
         _fab = findViewById(R.id._fab);
+        fab_add = findViewById(R.id.fab_add);
+        fab_import = findViewById(R.id.fab_import);
+        fab_export = findViewById(R.id.fab_export);
         
         intentPlayer = new Intent();
         
@@ -106,13 +117,29 @@ public class MainActivity extends AppCompatActivity {
         channelAdapter = new ChannelAdapter();
         channelGrid.setAdapter(channelAdapter);
 
-        // Add playlist
-        _fab.setOnClickListener(
-                v -> showPlaylistDialog()
-        );
+        // FAB Functions
+        _fab.setOnClickListener(v -> {
+            fabExpansionClicks++;
+            
+            if (fabExpansionClicks == 1) {
+                openFab();
+            }
+            else if (fabExpansionClicks == 2) {
+                closeFab();
+            }
+        });
+        
+        fab_add.setOnClickListener(v -> {
+            checkAndCloseFab();
+            showPlaylistDialog();
+        });
 
         findViewById(R.id.favoritesButton).setOnClickListener(
-                v -> startActivity(new Intent(this, FavoritesActivity.class))
+                v -> {
+                    checkAndCloseFab();
+                    
+                    startActivity(new Intent(this, FavoritesActivity.class));
+                }
         );
 
         // Channel click and long click
@@ -129,6 +156,8 @@ public class MainActivity extends AppCompatActivity {
                             channel.name,
                             Toast.LENGTH_SHORT
                     ).show();*/
+                    
+                    checkAndCloseFab();
 
                     new MaterialAlertDialogBuilder(this)
                         .setTitle(channel.name)
@@ -172,6 +201,9 @@ public class MainActivity extends AppCompatActivity {
                     selectedId = position;        
         
                     if (channel != null) {
+                        
+                        checkAndCloseFab();
+                        
                         showChannelPopupMenu(view, channel);
                     }
         
@@ -594,6 +626,37 @@ public class MainActivity extends AppCompatActivity {
                 start,
                 end
         );
+    }
+                                 
+    // --------------------------------------------------
+    // FAB Open and Close
+    // --------------------------------------------------
+
+    private void openFab() {
+    	isFabExpanded = true;
+            
+        FABAnimator.rotateInFab(this, _fab);
+        
+        FABAnimator.showButtonsIn(this, fab_add);
+        FABAnimator.showButtonsIn(this, fab_import);
+        FABAnimator.showButtonsIn(this, fab_export);
+    }
+    
+    private void closeFab() {
+        isFabExpanded = false;
+        fabExpansionClicks = 0;
+        
+        FABAnimator.rotateOutFab(this, _fab);
+        
+        FABAnimator.showButtonsOut(this, fab_add);
+        FABAnimator.showButtonsOut(this, fab_import);
+        FABAnimator.showButtonsOut(this, fab_export);
+    }
+    
+    private void checkAndCloseFab() {
+    	if (isFabExpanded) {
+            closeFab();
+        }
     }
     
     private void showChannelPopupMenu(
