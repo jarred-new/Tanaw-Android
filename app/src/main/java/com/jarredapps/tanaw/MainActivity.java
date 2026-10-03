@@ -63,6 +63,8 @@ public class MainActivity extends AppCompatActivity {
 
     private final ExecutorService executor =
             Executors.newSingleThreadExecutor();
+
+    private static final long FAB_STAGGER_DELAY_MS = 45L;
     
     private SharedPreferences preferences;
     
@@ -71,7 +73,6 @@ public class MainActivity extends AppCompatActivity {
     protected int selectedId = 0;
     
     protected boolean isFabExpanded = false;
-    protected int fabExpansionClicks = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,6 +84,16 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets safeInsets = insets.getInsets(
+                    WindowInsetsCompat.Type.systemBars()
+                            | WindowInsetsCompat.Type.displayCutout()
+            );
+            v.setPadding(
+                    safeInsets.left,
+                    safeInsets.top,
+                    safeInsets.right,
+                    safeInsets.bottom
+            );
             return insets;
         });
         
@@ -119,12 +130,10 @@ public class MainActivity extends AppCompatActivity {
 
         // FAB Functions
         _fab.setOnClickListener(v -> {
-            fabExpansionClicks++;
-            
-            if (fabExpansionClicks == 1) {
+            if (!isFabExpanded) {
                 openFab();
             }
-            else if (fabExpansionClicks == 2) {
+            else {
                 closeFab();
             }
         });
@@ -633,24 +642,23 @@ public class MainActivity extends AppCompatActivity {
     // --------------------------------------------------
 
     private void openFab() {
-    	isFabExpanded = true;
-            
-        FABAnimator.rotateInFab(this, _fab);
-        
-        FABAnimator.showButtonsIn(this, fab_add);
-        FABAnimator.showButtonsIn(this, fab_import);
-        FABAnimator.showButtonsIn(this, fab_export);
+        isFabExpanded = true;
+        _fab.setContentDescription("Close playlist actions");
+
+        FABAnimator.rotateInFab(_fab);
+        FABAnimator.showButtonsIn(fab_add, 0L);
+        FABAnimator.showButtonsIn(fab_import, FAB_STAGGER_DELAY_MS);
+        FABAnimator.showButtonsIn(fab_export, FAB_STAGGER_DELAY_MS * 2L);
     }
     
     private void closeFab() {
         isFabExpanded = false;
-        fabExpansionClicks = 0;
-        
-        FABAnimator.rotateOutFab(this, _fab);
-        
-        FABAnimator.showButtonsOut(this, fab_add);
-        FABAnimator.showButtonsOut(this, fab_import);
-        FABAnimator.showButtonsOut(this, fab_export);
+        _fab.setContentDescription("Open playlist actions");
+
+        FABAnimator.rotateOutFab(_fab);
+        FABAnimator.showButtonsOut(fab_export, 0L);
+        FABAnimator.showButtonsOut(fab_import, FAB_STAGGER_DELAY_MS);
+        FABAnimator.showButtonsOut(fab_add, FAB_STAGGER_DELAY_MS * 2L);
     }
     
     private void checkAndCloseFab() {
