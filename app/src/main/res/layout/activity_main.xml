@@ -99,62 +99,67 @@
     
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-	<com.google.android.material.floatingactionbutton.FloatingActionButton
-		android:id="@+id/fab_export"
+	<LinearLayout
+		android:id="@+id/fabMenu"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:contentDescription="Export JSON playlist"
-		android:src="@drawable/ic_export"
-        android:visibility="gone"
-		app:backgroundTint="?attr/colorPrimaryContainer"
-		app:tint="?attr/colorOnPrimaryContainer"
-		app:elevation="8dp"
-		app:layout_constraintStart_toStartOf="parent"
-		app:layout_constraintTop_toTopOf="parent"
-		android:layout_marginStart="331.6503dp"
-		android:layout_marginTop="469.64285dp" />
+		android:layout_marginEnd="24dp"
+		android:layout_marginBottom="24dp"
+		android:clipChildren="false"
+		android:clipToPadding="false"
+		android:gravity="end"
+		android:orientation="vertical"
+		app:layout_constraintBottom_toBottomOf="parent"
+		app:layout_constraintEnd_toEndOf="parent">
 
-	<com.google.android.material.floatingactionbutton.FloatingActionButton
-		android:id="@+id/fab_import"
-		android:layout_width="wrap_content"
-		android:layout_height="wrap_content"
-		android:contentDescription="Import JSON playlist"
-		android:src="@drawable/ic_import"
-        android:visibility="gone"
-		app:backgroundTint="?attr/colorPrimaryContainer"
-		app:tint="?attr/colorOnPrimaryContainer"
-		app:elevation="8dp"
-		app:layout_constraintStart_toStartOf="parent"
-		app:layout_constraintTop_toTopOf="parent"
-		android:layout_marginStart="331.28647dp"
-		android:layout_marginTop="530.747dp" />
+		<com.google.android.material.floatingactionbutton.FloatingActionButton
+			android:id="@+id/fab_export"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_marginBottom="12dp"
+			android:contentDescription="Export JSON playlist"
+			android:src="@drawable/ic_export"
+			android:visibility="gone"
+			app:backgroundTint="?attr/colorPrimaryContainer"
+			app:elevation="8dp"
+			app:fabSize="mini"
+			app:tint="?attr/colorOnPrimaryContainer" />
 
-	<com.google.android.material.floatingactionbutton.FloatingActionButton
-		android:id="@+id/fab_add"
-		android:layout_width="wrap_content"
-		android:layout_height="wrap_content"
-		android:contentDescription="Add playlist"
-		android:src="@drawable/ic_add"
-        android:visibility="gone"
-		app:backgroundTint="?attr/colorPrimaryContainer"
-		app:tint="?attr/colorOnPrimaryContainer"
-		app:elevation="8dp"
-		app:layout_constraintStart_toStartOf="parent"
-		app:layout_constraintTop_toTopOf="parent"
-		android:layout_marginStart="331.5119dp"
-		android:layout_marginTop="592.1696dp" />
+		<com.google.android.material.floatingactionbutton.FloatingActionButton
+			android:id="@+id/fab_import"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_marginBottom="12dp"
+			android:contentDescription="Import JSON playlist"
+			android:src="@drawable/ic_import"
+			android:visibility="gone"
+			app:backgroundTint="?attr/colorPrimaryContainer"
+			app:elevation="8dp"
+			app:fabSize="mini"
+			app:tint="?attr/colorOnPrimaryContainer" />
 
-	<com.google.android.material.floatingactionbutton.FloatingActionButton
-		android:id="@+id/_fab"
-		android:layout_width="wrap_content"
-		android:layout_height="wrap_content"
-		android:src="@android:drawable/ic_input_add"
-		app:backgroundTint="?attr/colorPrimaryContainer"
-		app:tint="?attr/colorOnPrimaryContainer"
-		app:elevation="8dp"
-		app:layout_constraintStart_toStartOf="parent"
-		app:layout_constraintTop_toTopOf="parent"
-		android:layout_marginStart="331.33185dp"
-		android:layout_marginTop="683.4554dp" />
+		<com.google.android.material.floatingactionbutton.FloatingActionButton
+			android:id="@+id/fab_add"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_marginBottom="12dp"
+			android:contentDescription="Add playlist"
+			android:src="@drawable/ic_add"
+			android:visibility="gone"
+			app:backgroundTint="?attr/colorPrimaryContainer"
+			app:elevation="8dp"
+			app:fabSize="mini"
+			app:tint="?attr/colorOnPrimaryContainer" />
+
+		<com.google.android.material.floatingactionbutton.FloatingActionButton
+			android:id="@+id/_fab"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:contentDescription="Open playlist actions"
+			android:src="@android:drawable/ic_input_add"
+			app:backgroundTint="?attr/colorPrimaryContainer"
+			app:elevation="8dp"
+			app:tint="?attr/colorOnPrimaryContainer" />
+	</LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

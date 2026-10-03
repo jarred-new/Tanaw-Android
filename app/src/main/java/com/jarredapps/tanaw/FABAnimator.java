@@ -1,67 +1,81 @@
 package com.jarredapps.tanaw;
 
-import android.content.Context;
 import android.view.View;
-import android.view.animation.AnimationUtils;
-import android.view.animation.Animation;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.DecelerateInterpolator;
 
 public class FABAnimator {
+    private static final long SHOW_DURATION_MS = 220L;
+    private static final long HIDE_DURATION_MS = 150L;
+    private static final float START_SCALE = 0.82f;
+    private static final float MOTION_DISTANCE_DP = 12f;
 
-    public static void rotateInFab(Context context, final View view) {
-        Animation rotateIn = AnimationUtils.loadAnimation(context, R.anim.rotate_fab_in);
-
-        view.startAnimation(rotateIn);
+    private FABAnimator() {
     }
 
-    public static void rotateOutFab(Context context, final View view) {
-        Animation rotateOut = AnimationUtils.loadAnimation(context, R.anim.rotate_fab_out);
-
-        view.startAnimation(rotateOut);
+    public static void rotateInFab(View view) {
+        view.animate().cancel();
+        view.animate()
+                .rotation(45f)
+                .setDuration(SHOW_DURATION_MS)
+                .setInterpolator(new DecelerateInterpolator(1.5f))
+                .start();
     }
 
-    public static void showButtonsIn(Context context, final View view) {
-        Animation rotateIn = AnimationUtils.loadAnimation(context, R.anim.from_bottom);
-
-        rotateIn.setAnimationListener(
-                new Animation.AnimationListener() {
-
-                    @Override
-                    public void onAnimationEnd(Animation arg0) {
-                    }
-
-                    @Override
-                    public void onAnimationRepeat(Animation arg0) {
-                    }
-
-                    @Override
-                    public void onAnimationStart(Animation arg0) {
-                        view.setVisibility(View.VISIBLE);
-                    }
-                });
-
-        view.startAnimation(rotateIn);
+    public static void rotateOutFab(View view) {
+        view.animate().cancel();
+        view.animate()
+                .rotation(0f)
+                .setDuration(HIDE_DURATION_MS)
+                .setInterpolator(new DecelerateInterpolator(1.5f))
+                .start();
     }
 
-    public static void showButtonsOut(Context context, final View view) {
-        Animation rotateOut = AnimationUtils.loadAnimation(context, R.anim.from_top);
+    public static void showButtonsIn(View view, long startDelayMillis) {
+        view.animate().cancel();
+        view.setVisibility(View.VISIBLE);
+        view.setAlpha(0f);
+        view.setScaleX(START_SCALE);
+        view.setScaleY(START_SCALE);
+        view.setTranslationY(getMotionDistancePx(view));
 
-        rotateOut.setAnimationListener(
-                new Animation.AnimationListener() {
+        view.animate()
+                .alpha(1f)
+                .scaleX(1f)
+                .scaleY(1f)
+                .translationY(0f)
+                .setStartDelay(startDelayMillis)
+                .setDuration(SHOW_DURATION_MS)
+                .setInterpolator(new DecelerateInterpolator(1.5f))
+                .start();
+    }
 
-                    @Override
-                    public void onAnimationEnd(Animation arg0) {
-                        view.setVisibility(View.GONE);
-                    }
+    public static void showButtonsOut(View view, long startDelayMillis) {
+        if (view.getVisibility() != View.VISIBLE) {
+            return;
+        }
 
-                    @Override
-                    public void onAnimationRepeat(Animation arg0) {
-                    }
+        view.animate().cancel();
+        view.animate()
+                .alpha(0f)
+                .scaleX(START_SCALE)
+                .scaleY(START_SCALE)
+                .translationY(getMotionDistancePx(view))
+                .setStartDelay(startDelayMillis)
+                .setDuration(HIDE_DURATION_MS)
+                .setInterpolator(new AccelerateInterpolator())
+                .withEndAction(() -> {
+                    view.setVisibility(View.GONE);
+                    view.setAlpha(1f);
+                    view.setScaleX(1f);
+                    view.setScaleY(1f);
+                    view.setTranslationY(0f);
+                })
+                .start();
+    }
 
-                    @Override
-                    public void onAnimationStart(Animation arg0) {
-                    }
-                });
-
-        view.startAnimation(rotateOut);
+    private static float getMotionDistancePx(View view) {
+        return MOTION_DISTANCE_DP
+                * view.getResources().getDisplayMetrics().density;
     }
 }
