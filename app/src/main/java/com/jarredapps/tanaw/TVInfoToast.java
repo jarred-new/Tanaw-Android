@@ -3,8 +3,8 @@ package com.jarredapps.tanaw;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.TextView;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 class TVInfoToast {

@@ -29,8 +29,23 @@
           "line": 44
         }
       }
+    },
+    {
+      "file": "/storage/emulated/0/CodeOnTheGoProjects/Tanaw-Android/app/src/main/java/com/jarredapps/tanaw/TVPlayer.java",
+      "selection": {
+        "end": {
+          "column": 29,
+          "index": 389,
+          "line": 12
+        },
+        "start": {
+          "column": 29,
+          "index": 389,
+          "line": 12
+        }
+      }
     }
   ],
   "projectPath": "/storage/emulated/0/CodeOnTheGoProjects/Tanaw-Android",
-  "selectedFile": "/storage/emulated/0/CodeOnTheGoProjects/Tanaw-Android/app/src/main/java/com/jarredapps/tanaw/MainActivity.java"
+  "selectedFile": "/storage/emulated/0/CodeOnTheGoProjects/Tanaw-Android/app/src/main/java/com/jarredapps/tanaw/TVPlayer.java"
 }
