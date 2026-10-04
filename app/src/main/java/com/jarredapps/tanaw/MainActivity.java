@@ -209,19 +209,33 @@ public class MainActivity extends AppCompatActivity {
                 v -> {
                     checkAndCloseFab();
                     // TODO: Export Function
-                    if (ContextCompat.checkSelfPermission(
-                        this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                        == PackageManager.PERMISSION_GRANTED
-                    ) {
-                        saveFileLauncher.launch("channels.json");
+                    if (Build.VERSION.SDK_INT <= 29) {
+                        if (ContextCompat.checkSelfPermission(
+                                        this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                                == PackageManager.PERMISSION_GRANTED) {
+                            saveFileLauncher.launch("channels.json");
+                        } else {
+                            ActivityCompat.requestPermissions(
+                                    this,
+                                    new String[] {
+                                        android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+                                    },
+                                    100);
+                        }
                     }
-                    else {
-                        ActivityCompat.requestPermissions(
-                            this, 
-                            new String[] {
-                                android.Manifest.permission.WRITE_EXTERNAL_STORAGE
-                            }, 100
-                        );
+                    else if (Build.VERSION.SDK_INT >= 30) {
+                        if (ContextCompat.checkSelfPermission(
+                                        this, android.Manifest.permission.MANAGE_EXTERNAL_STORAGE)
+                                == PackageManager.PERMISSION_GRANTED) {
+                            saveFileLauncher.launch("channels.json");
+                        } else {
+                            ActivityCompat.requestPermissions(
+                                    this,
+                                    new String[] {
+                                        android.Manifest.permission.MANAGE_EXTERNAL_STORAGE
+                                    },
+                                    100);
+                        }
                     }
                 });
 
@@ -229,15 +243,33 @@ public class MainActivity extends AppCompatActivity {
                 v -> {
                     checkAndCloseFab();
                     // TODO: Import Function
-                    if (ContextCompat.checkSelfPermission(
-                                    this, android.Manifest.permission.READ_EXTERNAL_STORAGE)
-                            == PackageManager.PERMISSION_GRANTED) {
-                        pickFileLauncher.launch(new String[] {"application/json"});
-                    } else {
-                        ActivityCompat.requestPermissions(
-                                this,
-                                new String[] {android.Manifest.permission.READ_EXTERNAL_STORAGE},
-                                100);
+                    if (Build.VERSION.SDK_INT <= 29) {
+                        if (ContextCompat.checkSelfPermission(
+                                        this, android.Manifest.permission.READ_EXTERNAL_STORAGE)
+                                == PackageManager.PERMISSION_GRANTED) {
+                            pickFileLauncher.launch(new String[] {"application/json"});
+                        } else {
+                            ActivityCompat.requestPermissions(
+                                    this,
+                                    new String[] {
+                                        android.Manifest.permission.READ_EXTERNAL_STORAGE
+                                    },
+                                    100);
+                        }
+                    }
+                    else if (Build.VERSION.SDK_INT >= 30) {
+                        if (ContextCompat.checkSelfPermission(
+                                        this, android.Manifest.permission.MANAGE_EXTERNAL_STORAGE)
+                                == PackageManager.PERMISSION_GRANTED) {
+                            pickFileLauncher.launch(new String[] {"application/json"});
+                        } else {
+                            ActivityCompat.requestPermissions(
+                                    this,
+                                    new String[] {
+                                        android.Manifest.permission.MANAGE_EXTERNAL_STORAGE
+                                    },
+                                    100);
+                        }
                     }
                 });
 

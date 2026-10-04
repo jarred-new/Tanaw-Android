@@ -1,51 +1,21 @@
 {
   "allFiles": [
     {
-      "file": "/storage/emulated/0/CodeOnTheGoProjects/Tanaw-Android/app/src/main/AndroidManifest.xml",
-      "selection": {
-        "end": {
-          "column": 50,
-          "index": 896,
-          "line": 18
-        },
-        "start": {
-          "column": 50,
-          "index": 896,
-          "line": 18
-        }
-      }
-    },
-    {
       "file": "/storage/emulated/0/CodeOnTheGoProjects/Tanaw-Android/app/src/main/java/com/jarredapps/tanaw/MainActivity.java",
       "selection": {
         "end": {
-          "column": 26,
-          "index": 1682,
-          "line": 44
+          "column": 0,
+          "index": 0,
+          "line": 0
         },
         "start": {
-          "column": 26,
-          "index": 1682,
-          "line": 44
-        }
-      }
-    },
-    {
-      "file": "/storage/emulated/0/CodeOnTheGoProjects/Tanaw-Android/app/src/main/java/com/jarredapps/tanaw/TVPlayer.java",
-      "selection": {
-        "end": {
-          "column": 29,
-          "index": 389,
-          "line": 12
-        },
-        "start": {
-          "column": 29,
-          "index": 389,
-          "line": 12
+          "column": 0,
+          "index": 0,
+          "line": 0
         }
       }
     }
   ],
   "projectPath": "/storage/emulated/0/CodeOnTheGoProjects/Tanaw-Android",
-  "selectedFile": "/storage/emulated/0/CodeOnTheGoProjects/Tanaw-Android/app/src/main/java/com/jarredapps/tanaw/TVPlayer.java"
+  "selectedFile": "/storage/emulated/0/CodeOnTheGoProjects/Tanaw-Android/app/src/main/java/com/jarredapps/tanaw/MainActivity.java"
 }
