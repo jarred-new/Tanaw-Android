@@ -142,6 +142,16 @@ public class MainActivity extends AppCompatActivity {
             checkAndCloseFab();
             showPlaylistDialog();
         });
+        
+        fab_export.setOnClickListener(v -> {
+            checkAndCloseFab();
+            // TODO: Export Function
+        });
+        
+        fab_import.setOnClickListener(v -> {
+            checkAndCloseFab();
+            // TODO: Import Function
+        });
 
         findViewById(R.id.favoritesButton).setOnClickListener(
                 v -> {
