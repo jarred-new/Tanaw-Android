@@ -73,7 +73,7 @@ public class MainActivity extends AppCompatActivity {
     protected int selectedId = 0;
     
     protected boolean isFabExpanded = false;
-
+    
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         setTheme(R.style.Theme_Tanaw);
