@@ -4,6 +4,7 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Build;
 import android.text.InputType;
@@ -19,9 +20,12 @@ import android.widget.Toast;
 
 import android.widget.ViewAnimator;
 import androidx.activity.EdgeToEdge;
+import androidx.activity.result.ActivityResultLauncher;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.appcompat.widget.SearchView;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -37,10 +41,14 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -55,72 +63,124 @@ public class MainActivity extends AppCompatActivity {
     private FloatingActionButton fab_export;
     private SwipeRefreshLayout swipeRefreshLayout;
     private SearchView searchView;
-    
-    private final ArrayList<Channel> channels =
-            new ArrayList<>();
+
+    private final ArrayList<Channel> channels = new ArrayList<>();
 
     private ChannelAdapter channelAdapter;
 
-    private final ExecutorService executor =
-            Executors.newSingleThreadExecutor();
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     private static final long FAB_STAGGER_DELAY_MS = 45L;
-    
+
     private SharedPreferences preferences;
-    
+
     private Intent intentPlayer;
-    
+
     protected int selectedId = 0;
-    
+
     protected boolean isFabExpanded = false;
-    
+
+    private final ActivityResultLauncher<String[]> pickFileLauncher =
+            registerForActivityResult(
+                    new ActivityResultContracts.OpenDocument(),
+                    uri -> {
+                        if (uri != null) {
+                            // Process the selected URI
+                            try (InputStream inputStream =
+                                    getContentResolver().openInputStream(uri)) {
+                                // Read bytes or process data from input stream here
+                                preferences
+                                        .edit()
+                                        .putString(
+                                                PrefHelper.urls,
+                                                new String(
+                                                        inputStream.readAllBytes(),
+                                                        StandardCharsets.UTF_8))
+                                        .apply();
+
+                                try {
+                                    loadSavedPlaylist();
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                    new MaterialAlertDialogBuilder(MainActivity.this)
+                                        .setTitle("Cannot Load Playlist")
+                                        .setMessage(e.getMessage())
+                                        .setPositiveButton("Ok", null)
+                                        .show();
+                                }
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                                new MaterialAlertDialogBuilder(MainActivity.this)
+                                        .setTitle("An Error Occured")
+                                        .setMessage(e.getMessage())
+                                        .setPositiveButton("Ok", null)
+                                        .show();
+                            }
+                        }
+                    });
+
+    private final ActivityResultLauncher<String> saveFileLauncher =
+            registerForActivityResult(
+                    new ActivityResultContracts.CreateDocument("application/json"),
+                    uri -> {
+                        if (uri != null) {
+                            // Write data into the file requested by the user
+                            try (OutputStream outputStream =
+                                    getContentResolver().openOutputStream(uri)) {
+                                if (outputStream != null) {
+                                    String json = preferences.getString(PrefHelper.urls, "");
+                                    if (!json.isEmpty()) outputStream.write(json.getBytes());
+                                }
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                                new MaterialAlertDialogBuilder(MainActivity.this)
+                                        .setTitle("An Error Occured")
+                                        .setMessage(e.getMessage())
+                                        .setPositiveButton("Ok", null)
+                                        .show();
+                            }
+                        }
+                    });
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         setTheme(R.style.Theme_Tanaw);
         DynamicColors.applyIfAvailable(this);
         EdgeToEdge.enable(this);
-        
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets safeInsets = insets.getInsets(
-                    WindowInsetsCompat.Type.systemBars()
-                            | WindowInsetsCompat.Type.displayCutout()
-            );
-            v.setPadding(
-                    safeInsets.left,
-                    safeInsets.top,
-                    safeInsets.right,
-                    safeInsets.bottom
-            );
-            return insets;
-        });
-        
+
+        ViewCompat.setOnApplyWindowInsetsListener(
+                findViewById(R.id.main),
+                (v, insets) -> {
+                    Insets safeInsets =
+                            insets.getInsets(
+                                    WindowInsetsCompat.Type.systemBars()
+                                            | WindowInsetsCompat.Type.displayCutout());
+                    v.setPadding(
+                            safeInsets.left, safeInsets.top, safeInsets.right, safeInsets.bottom);
+                    return insets;
+                });
+
         txtStatus = findViewById(R.id.txtStatus);
         searchView = findViewById(R.id.searchView);
         swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
         channelGrid = findViewById(R.id.channelGrid);
-        
+
         _fab = findViewById(R.id._fab);
         fab_add = findViewById(R.id.fab_add);
         fab_import = findViewById(R.id.fab_import);
         fab_export = findViewById(R.id.fab_export);
-        
+
         intentPlayer = new Intent();
-        
-        preferences = getSharedPreferences(
-            PrefHelper.prefName,
-            MODE_PRIVATE
-        );
-        
-        String savedUrl = preferences.getString(
-                PrefHelper.urls,
-                ""
-        );
-        
+
+        preferences = getSharedPreferences(PrefHelper.prefName, MODE_PRIVATE);
+
+        String savedUrl = preferences.getString(PrefHelper.urls, "");
+
         if (!savedUrl.isEmpty()) {
-            //loadPlaylist(savedUrl);
+            // loadPlaylist(savedUrl);
             loadSavedPlaylist();
         }
 
@@ -129,185 +189,186 @@ public class MainActivity extends AppCompatActivity {
         channelGrid.setAdapter(channelAdapter);
 
         // FAB Functions
-        _fab.setOnClickListener(v -> {
-            if (!isFabExpanded) {
-                openFab();
-            }
-            else {
-                closeFab();
-            }
-        });
-        
-        fab_add.setOnClickListener(v -> {
-            checkAndCloseFab();
-            showPlaylistDialog();
-        });
-        
-        fab_export.setOnClickListener(v -> {
-            checkAndCloseFab();
-            // TODO: Export Function
-        });
-        
-        fab_import.setOnClickListener(v -> {
-            checkAndCloseFab();
-            // TODO: Import Function
-        });
+        _fab.setOnClickListener(
+                v -> {
+                    if (!isFabExpanded) {
+                        openFab();
+                    } else {
+                        closeFab();
+                    }
+                });
 
-        findViewById(R.id.favoritesButton).setOnClickListener(
+        fab_add.setOnClickListener(
                 v -> {
                     checkAndCloseFab();
-                    
-                    startActivity(new Intent(this, FavoritesActivity.class));
-                }
-        );
+                    showPlaylistDialog();
+                });
+
+        fab_export.setOnClickListener(
+                v -> {
+                    checkAndCloseFab();
+                    // TODO: Export Function
+                    if (ContextCompat.checkSelfPermission(
+                        this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                        == PackageManager.PERMISSION_GRANTED
+                    ) {
+                        saveFileLauncher.launch("channels.json");
+                    }
+                    else {
+                        ActivityCompat.requestPermissions(
+                            this, 
+                            new String[] {
+                                android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+                            }, 100
+                        );
+                    }
+                });
+
+        fab_import.setOnClickListener(
+                v -> {
+                    checkAndCloseFab();
+                    // TODO: Import Function
+                    if (ContextCompat.checkSelfPermission(
+                                    this, android.Manifest.permission.READ_EXTERNAL_STORAGE)
+                            == PackageManager.PERMISSION_GRANTED) {
+                        pickFileLauncher.launch(new String[] {"application/json"});
+                    } else {
+                        ActivityCompat.requestPermissions(
+                                this,
+                                new String[] {android.Manifest.permission.READ_EXTERNAL_STORAGE},
+                                100);
+                    }
+                });
+
+        findViewById(R.id.favoritesButton)
+                .setOnClickListener(
+                        v -> {
+                            checkAndCloseFab();
+
+                            startActivity(new Intent(this, FavoritesActivity.class));
+                        });
 
         // Channel click and long click
         channelGrid.setOnItemClickListener(
                 (parent, view, position, id) -> {
+                    Channel channel = channelAdapter.getItem(position);
 
-                    Channel channel =
-                            channelAdapter.getItem(position);
-                            
-                    selectedId = position;        
+                    selectedId = position;
 
                     /*Toast.makeText(
                             MainActivity.this,
                             channel.name,
                             Toast.LENGTH_SHORT
                     ).show();*/
-                    
+
                     checkAndCloseFab();
 
                     new MaterialAlertDialogBuilder(this)
-                        .setTitle(channel.name)
-                        .setMessage(
-                            "Channel Number: " + String.valueOf(selectedId) + "\n" +
-                            "Name: " + channel.name + "\n" +
-                            "Url: " + channel.url + "\n"
-                        )
-                        .setNegativeButton(
-                                "Cancel",
-                                null
-                        )
-                        .setPositiveButton(
-                                "Play",
-                                (dialog, which) -> {
-                                    // Open Media3 player here.
-                                    if (intentPlayer != null) {
-                                        intentPlayer.setClass(this, TVPlayer.class);
-                                        intentPlayer.putExtra(
-                                            PrefHelper.urlsIntent, channel.url
-                                        );
-                                        intentPlayer.putExtra(
-                                            PrefHelper.channelNameIntent, channel.name
-                                        );
-                                        intentPlayer.putExtra(
-                                            PrefHelper.channelIdIntent, String.valueOf(selectedId)
-                                        );
-                                        startActivity(intentPlayer);
-                                    }
-                                }
-                        )
-                        .show();
-                }
-        );
-        
-        channelGrid.setOnItemLongClickListener((parent, view, position, id) -> {
+                            .setTitle(channel.name)
+                            .setMessage(
+                                    "Channel Number: "
+                                            + String.valueOf(selectedId)
+                                            + "\n"
+                                            + "Name: "
+                                            + channel.name
+                                            + "\n"
+                                            + "Url: "
+                                            + channel.url
+                                            + "\n")
+                            .setNegativeButton("Cancel", null)
+                            .setPositiveButton(
+                                    "Play",
+                                    (dialog, which) -> {
+                                        // Open Media3 player here.
+                                        if (intentPlayer != null) {
+                                            intentPlayer.setClass(this, TVPlayer.class);
+                                            intentPlayer.putExtra(
+                                                    PrefHelper.urlsIntent, channel.url);
+                                            intentPlayer.putExtra(
+                                                    PrefHelper.channelNameIntent, channel.name);
+                                            intentPlayer.putExtra(
+                                                    PrefHelper.channelIdIntent,
+                                                    String.valueOf(selectedId));
+                                            startActivity(intentPlayer);
+                                        }
+                                    })
+                            .show();
+                });
 
-                    Channel channel =
-                            channelAdapter.getItem(position);
-                            
-                    selectedId = position;        
-        
+        channelGrid.setOnItemLongClickListener(
+                (parent, view, position, id) -> {
+                    Channel channel = channelAdapter.getItem(position);
+
+                    selectedId = position;
+
                     if (channel != null) {
-                        
+
                         checkAndCloseFab();
-                        
+
                         showChannelPopupMenu(view, channel);
                     }
-        
+
                     return true;
-                }
-        );
-        
+                });
+
         // Refresh to reload channels
-        swipeRefreshLayout.setOnRefreshListener(() -> {
-            String urlRefresh = preferences.getString(
-                PrefHelper.urls,
-                ""
-            );
-            
-            if (!savedUrl.isEmpty()) {
-                //loadPlaylist(urlRefresh);
-                loadSavedPlaylist();
-            }
-            else {
-                swipeRefreshLayout.setRefreshing(false);
-                Toast.makeText(
-                    MainActivity.this,
-                    "No Channels or Playlists were added yet!",
-                    Toast.LENGTH_SHORT
-                ).show();
-            }
-        });
-        
+        swipeRefreshLayout.setOnRefreshListener(
+                () -> {
+                    String urlRefresh = preferences.getString(PrefHelper.urls, "");
+
+                    if (!savedUrl.isEmpty()) {
+                        // loadPlaylist(urlRefresh);
+                        loadSavedPlaylist();
+                    } else {
+                        swipeRefreshLayout.setRefreshing(false);
+                        Toast.makeText(
+                                        MainActivity.this,
+                                        "No Channels or Playlists were added yet!",
+                                        Toast.LENGTH_SHORT)
+                                .show();
+                    }
+                });
+
         // Search
-        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String query) {
-                channelAdapter.getFilter().filter(query);
-                return true;
-            }
-        
-            @Override
-            public boolean onQueryTextChange(String newText) {
-                channelAdapter.getFilter().filter(newText);
-                return true;
-            }
-        });
+        searchView.setOnQueryTextListener(
+                new SearchView.OnQueryTextListener() {
+                    @Override
+                    public boolean onQueryTextSubmit(String query) {
+                        channelAdapter.getFilter().filter(query);
+                        return true;
+                    }
+
+                    @Override
+                    public boolean onQueryTextChange(String newText) {
+                        channelAdapter.getFilter().filter(newText);
+                        return true;
+                    }
+                });
     }
-    
+
     // --------------------------------------------------
     // Playlist dialog
     // --------------------------------------------------
 
     private void showPlaylistDialog() {
 
-        LinearLayout layout =
-                new LinearLayout(this);
+        LinearLayout layout = new LinearLayout(this);
 
-        layout.setOrientation(
-                LinearLayout.VERTICAL
-        );
+        layout.setOrientation(LinearLayout.VERTICAL);
 
-        layout.setPadding(
-                40,
-                10,
-                40,
-                0
-        );
+        layout.setPadding(40, 10, 40, 0);
 
         TextInputLayout inputLayout =
                 new TextInputLayout(
-                        this,
-                        null,
-                        com.google.android.material.R.attr
-                                .textInputOutlinedStyle
-                );
+                        this, null, com.google.android.material.R.attr.textInputOutlinedStyle);
 
-        inputLayout.setHint(
-                "M3U Playlist URL"
-        );
+        inputLayout.setHint("M3U Playlist URL");
 
-        TextInputEditText input =
-                new TextInputEditText(this);
+        TextInputEditText input = new TextInputEditText(this);
 
         input.setSingleLine(true);
 
-        input.setInputType(
-                InputType.TYPE_CLASS_TEXT |
-                InputType.TYPE_TEXT_VARIATION_URI
-        );
+        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
 
         inputLayout.addView(input);
 
@@ -317,56 +378,39 @@ public class MainActivity extends AppCompatActivity {
                 new MaterialAlertDialogBuilder(this)
                         .setTitle("Add Playlist")
                         .setView(layout)
-                        .setNegativeButton(
-                                "Cancel",
-                                null
-                        )
-                        .setPositiveButton(
-                                "Add",
-                                null
-                        )
+                        .setNegativeButton("Cancel", null)
+                        .setPositiveButton("Add", null)
                         .create();
 
         dialog.setOnShowListener(
                 d -> {
+                    dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE)
+                            .setOnClickListener(
+                                    v -> {
+                                        String url = input.getText().toString().trim();
 
-                    dialog.getButton(
-                            androidx.appcompat.app.AlertDialog
-                                    .BUTTON_POSITIVE
-                    ).setOnClickListener(v -> {
+                                        if (url.isEmpty()) {
 
-                        String url =
-                                input.getText()
-                                        .toString()
-                                        .trim();
+                                            inputLayout.setError("Enter a playlist URL");
 
-                        if (url.isEmpty()) {
+                                            return;
+                                        }
 
-                            inputLayout.setError(
-                                    "Enter a playlist URL"
-                            );
+                                        if (!url.startsWith("http://")
+                                                && !url.startsWith("https://")) {
 
-                            return;
-                        }
+                                            inputLayout.setError("Enter a valid HTTP/HTTPS URL");
 
-                        if (!url.startsWith("http://") &&
-                                !url.startsWith("https://")) {
+                                            return;
+                                        }
 
-                            inputLayout.setError(
-                                    "Enter a valid HTTP/HTTPS URL"
-                            );
+                                        inputLayout.setError(null);
 
-                            return;
-                        }
+                                        dialog.dismiss();
 
-                        inputLayout.setError(null);
-
-                        dialog.dismiss();
-
-                        loadPlaylist(url);
-                    });
-                }
-        );
+                                        loadPlaylist(url);
+                                    });
+                });
 
         dialog.show();
     }
@@ -375,136 +419,98 @@ public class MainActivity extends AppCompatActivity {
     // Load playlist
     // --------------------------------------------------
 
-    private void loadPlaylist(
-            String playlistUrl
-    ) {
+    private void loadPlaylist(String playlistUrl) {
 
-        txtStatus.setText(
-                "Loading playlist..."
-        );
+        txtStatus.setText("Loading playlist...");
 
-        //channelGrid.setVisibility(View.INVISIBLE);
+        // channelGrid.setVisibility(View.INVISIBLE);
         _fab.setEnabled(false);
         if (swipeRefreshLayout.isRefreshing()) {
             swipeRefreshLayout.setRefreshing(false);
         }
 
-        executor.execute(() -> {
+        executor.execute(
+                () -> {
+                    PlaylistResult playlist = downloadPlaylist(playlistUrl);
 
-            PlaylistResult playlist =
-                    downloadPlaylist(playlistUrl);
+                    runOnUiThread(
+                            () -> {
+                                _fab.setEnabled(true);
+                                // channelGrid.setVisibility(View.VISIBLE);
 
-            runOnUiThread(() -> {
+                                if (playlist.error != null) {
 
-                _fab.setEnabled(true);
-                //channelGrid.setVisibility(View.VISIBLE);
+                                    txtStatus.setText("Failed to load playlist");
 
-                if (playlist.error != null) {
+                                    Toast.makeText(
+                                                    MainActivity.this,
+                                                    playlist.error,
+                                                    Toast.LENGTH_LONG)
+                                            .show();
 
-                    txtStatus.setText(
-                            "Failed to load playlist"
-                    );
+                                    return;
+                                }
 
-                    Toast.makeText(
-                            MainActivity.this,
-                            playlist.error,
-                            Toast.LENGTH_LONG
-                    ).show();
+                                channels.clear();
+                                channels.addAll(playlist.channels);
 
-                    return;
-                }
+                                channelAdapter.setChannels(channels);
 
-                channels.clear();
-                channels.addAll(playlist.channels);
-                
-                channelAdapter.setChannels(channels);
+                                txtStatus.setText(channels.size() + " channels loaded");
 
-                txtStatus.setText(
-                        channels.size() +
-                        " channels loaded"
-                );
-                
-                //preferences.edit().putString(PrefHelper.urls, playlistUrl).apply();
-                savePlaylist();
-            });
-        });
+                                // preferences.edit().putString(PrefHelper.urls,
+                                // playlistUrl).apply();
+                                savePlaylist();
+                            });
+                });
     }
 
     // --------------------------------------------------
     // Download and parse M3U
     // --------------------------------------------------
 
-    private PlaylistResult downloadPlaylist(
-            String playlistUrl
-    ) {
+    private PlaylistResult downloadPlaylist(String playlistUrl) {
 
-        ArrayList<Channel> result =
-                new ArrayList<>();
+        ArrayList<Channel> result = new ArrayList<>();
 
         HttpURLConnection connection = null;
 
         try {
 
-            URL url =
-                    new URL(playlistUrl);
+            URL url = new URL(playlistUrl);
 
-            connection =
-                    (HttpURLConnection)
-                            url.openConnection();
+            connection = (HttpURLConnection) url.openConnection();
 
             connection.setRequestMethod("GET");
 
-            connection.setConnectTimeout(
-                    15000
-            );
+            connection.setConnectTimeout(15000);
 
-            connection.setReadTimeout(
-                    30000
-            );
+            connection.setReadTimeout(30000);
 
-            connection.setRequestProperty(
-                    "User-Agent",
-                    "Tanaw IPTV Player"
-            );
+            connection.setRequestProperty("User-Agent", "Tanaw IPTV Player");
 
-            connection.setRequestProperty(
-                    "Accept",
-                    "*/*"
-            );
+            connection.setRequestProperty("Accept", "*/*");
 
-            connection.setInstanceFollowRedirects(
-                    true
-            );
+            connection.setInstanceFollowRedirects(true);
 
             connection.connect();
 
-            int responseCode =
-                    connection.getResponseCode();
+            int responseCode = connection.getResponseCode();
 
-            if (responseCode < 200 ||
-                    responseCode >= 300) {
+            if (responseCode < 200 || responseCode >= 300) {
 
-                return new PlaylistResult(
-                        result,
-                        "HTTP " + responseCode
-                );
+                return new PlaylistResult(result, "HTTP " + responseCode);
             }
 
             BufferedReader reader =
-                    new BufferedReader(
-                            new InputStreamReader(
-                                    connection
-                                            .getInputStream()
-                            )
-                    );
+                    new BufferedReader(new InputStreamReader(connection.getInputStream()));
 
             String line;
 
             String channelName = null;
             String channelLogo = null;
 
-            while ((line =
-                    reader.readLine()) != null) {
+            while ((line = reader.readLine()) != null) {
 
                 line = line.trim();
 
@@ -515,14 +521,9 @@ public class MainActivity extends AppCompatActivity {
                 // Channel information
                 if (line.startsWith("#EXTINF")) {
 
-                    channelName =
-                            parseChannelName(line);
+                    channelName = parseChannelName(line);
 
-                    channelLogo =
-                            parseAttribute(
-                                    line,
-                                    "tvg-logo"
-                            );
+                    channelLogo = parseAttribute(line, "tvg-logo");
 
                     continue;
                 }
@@ -537,13 +538,7 @@ public class MainActivity extends AppCompatActivity {
 
                     String streamUrl = line;
 
-                    result.add(
-                            new Channel(
-                                    channelName,
-                                    channelLogo,
-                                    streamUrl
-                            )
-                    );
+                    result.add(new Channel(channelName, channelLogo, streamUrl));
 
                     channelName = null;
                     channelLogo = null;
@@ -552,28 +547,18 @@ public class MainActivity extends AppCompatActivity {
 
             reader.close();
 
-            return new PlaylistResult(
-                    result,
-                    null
-            );
+            return new PlaylistResult(result, null);
 
         } catch (Exception e) {
 
-            String message =
-                    e.getMessage();
+            String message = e.getMessage();
 
-            if (message == null ||
-                    message.isEmpty()) {
+            if (message == null || message.isEmpty()) {
 
-                message =
-                        e.getClass()
-                                .getSimpleName();
+                message = e.getClass().getSimpleName();
             }
 
-            return new PlaylistResult(
-                    result,
-                    message
-            );
+            return new PlaylistResult(result, message);
 
         } finally {
 
@@ -587,20 +572,13 @@ public class MainActivity extends AppCompatActivity {
     // Parse channel name
     // --------------------------------------------------
 
-    private String parseChannelName(
-            String line
-    ) {
+    private String parseChannelName(String line) {
 
-        int comma =
-                line.indexOf(',');
+        int comma = line.indexOf(',');
 
-        if (comma >= 0 &&
-                comma + 1 < line.length()) {
+        if (comma >= 0 && comma + 1 < line.length()) {
 
-            String name =
-                    line.substring(
-                            comma + 1
-                    ).trim();
+            String name = line.substring(comma + 1).trim();
 
             if (!name.isEmpty()) {
                 return name;
@@ -614,16 +592,11 @@ public class MainActivity extends AppCompatActivity {
     // Parse M3U attribute
     // --------------------------------------------------
 
-    private String parseAttribute(
-            String line,
-            String attribute
-    ) {
+    private String parseAttribute(String line, String attribute) {
 
-        String search =
-                attribute + "=\"";
+        String search = attribute + "=\"";
 
-        int start =
-                line.indexOf(search);
+        int start = line.indexOf(search);
 
         if (start == -1) {
             return "";
@@ -631,22 +604,15 @@ public class MainActivity extends AppCompatActivity {
 
         start += search.length();
 
-        int end =
-                line.indexOf(
-                        "\"",
-                        start
-                );
+        int end = line.indexOf("\"", start);
 
         if (end == -1) {
             return "";
         }
 
-        return line.substring(
-                start,
-                end
-        );
+        return line.substring(start, end);
     }
-                                 
+
     // --------------------------------------------------
     // FAB Open and Close
     // --------------------------------------------------
@@ -660,7 +626,7 @@ public class MainActivity extends AppCompatActivity {
         FABAnimator.showButtonsIn(fab_import, FAB_STAGGER_DELAY_MS);
         FABAnimator.showButtonsIn(fab_export, FAB_STAGGER_DELAY_MS * 2L);
     }
-    
+
     private void closeFab() {
         isFabExpanded = false;
         _fab.setContentDescription("Open playlist actions");
@@ -670,526 +636,405 @@ public class MainActivity extends AppCompatActivity {
         FABAnimator.showButtonsOut(fab_import, FAB_STAGGER_DELAY_MS);
         FABAnimator.showButtonsOut(fab_add, FAB_STAGGER_DELAY_MS * 2L);
     }
-    
+
     private void checkAndCloseFab() {
-    	if (isFabExpanded) {
+        if (isFabExpanded) {
             closeFab();
         }
     }
-    
-    private void showChannelPopupMenu(
-        View anchor,
-        final Channel channel
-    ) {
-    
-        PopupMenu popupMenu =
-                new PopupMenu(this, anchor);
-    
+
+    private void showChannelPopupMenu(View anchor, final Channel channel) {
+
+        PopupMenu popupMenu = new PopupMenu(this, anchor);
+
         Menu menu = popupMenu.getMenu();
-    
-        MenuItem playMenu = menu.add(
-                Menu.NONE,
-                1,
-                Menu.NONE,
-                "Play"
-        );
-    
-        MenuItem favoritesMenu = menu.add(
-                Menu.NONE,
-                2,
-                Menu.NONE,
-                "Add to Favorites"
-        );
-    
-        MenuItem infoMenu = menu.add(
-                Menu.NONE,
-                3,
-                Menu.NONE,
-                "Channel Info"
-        );
-    
-        MenuItem copyMenu = menu.add(
-                Menu.NONE,
-                4,
-                Menu.NONE,
-                "Copy Stream URL"
-        );
-    
-        MenuItem shareMenu = menu.add(
-                Menu.NONE,
-                5,
-                Menu.NONE,
-                "Share"
-        );
-    
-        MenuItem removeMenu = menu.add(
-                Menu.NONE,
-                6,
-                Menu.NONE,
-                "Remove Channel"
-        );
-        
+
+        MenuItem playMenu = menu.add(Menu.NONE, 1, Menu.NONE, "Play");
+
+        MenuItem favoritesMenu = menu.add(Menu.NONE, 2, Menu.NONE, "Add to Favorites");
+
+        MenuItem infoMenu = menu.add(Menu.NONE, 3, Menu.NONE, "Channel Info");
+
+        MenuItem copyMenu = menu.add(Menu.NONE, 4, Menu.NONE, "Copy Stream URL");
+
+        MenuItem shareMenu = menu.add(Menu.NONE, 5, Menu.NONE, "Share");
+
+        MenuItem removeMenu = menu.add(Menu.NONE, 6, Menu.NONE, "Remove Channel");
+
         playMenu.setIcon(R.drawable.ic_play_circle_outline);
         favoritesMenu.setIcon(R.drawable.ic_heart_outline);
         infoMenu.setIcon(R.drawable.ic_information_slab_circle_outline);
         copyMenu.setIcon(R.drawable.ic_link_circle_outline);
         shareMenu.setIcon(R.drawable.ic_share_outline);
         removeMenu.setIcon(R.drawable.ic_delete_forever);
-    
+
         popupMenu.setOnMenuItemClickListener(
                 item -> {
                     switch (item.getItemId()) {
-    
                         case 1:
                             playChannel(channel);
                             return true;
-    
+
                         case 2:
                             toggleFavorite(channel);
                             return true;
-    
+
                         case 3:
                             showChannelInfo(channel);
                             return true;
-    
+
                         case 4:
                             copyStreamUrl(channel);
                             return true;
-    
+
                         case 5:
                             shareChannel(channel);
                             return true;
-    
+
                         case 6:
                             removeChannel(channel);
                             return true;
-    
+
                         default:
                             return false;
                     }
-                }
-        );
-    
+                });
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             popupMenu.setForceShowIcon(true);
         }
-    
+
         popupMenu.show();
     }
-    
+
     private void playChannel(final Channel channel) {
         if (intentPlayer != null) {
             intentPlayer.setClass(this, TVPlayer.class);
-            intentPlayer.putExtra(
-                PrefHelper.urlsIntent, channel.url
-            );
-            intentPlayer.putExtra(
-                PrefHelper.channelNameIntent, channel.name
-            );
-            intentPlayer.putExtra(
-                PrefHelper.channelIdIntent, String.valueOf(selectedId)
-            );
+            intentPlayer.putExtra(PrefHelper.urlsIntent, channel.url);
+            intentPlayer.putExtra(PrefHelper.channelNameIntent, channel.name);
+            intentPlayer.putExtra(PrefHelper.channelIdIntent, String.valueOf(selectedId));
             startActivity(intentPlayer);
         }
     }
-    
+
     private void toggleFavorite(final Channel channel) {
-                String savedFavorites = preferences.getString(PrefHelper.favorites, "");
-                Type type = new TypeToken<ArrayList<Channel>>() {}.getType();
-                ArrayList<Channel> favoriteChannels = savedFavorites.isEmpty()
-                                ? new ArrayList<>()
-                                : new Gson().fromJson(savedFavorites, type);
+        String savedFavorites = preferences.getString(PrefHelper.favorites, "");
+        Type type = new TypeToken<ArrayList<Channel>>() {}.getType();
+        ArrayList<Channel> favoriteChannels =
+                savedFavorites.isEmpty()
+                        ? new ArrayList<>()
+                        : new Gson().fromJson(savedFavorites, type);
 
-                if (favoriteChannels == null) {
-                        favoriteChannels = new ArrayList<>();
-                }
+        if (favoriteChannels == null) {
+            favoriteChannels = new ArrayList<>();
+        }
 
-                boolean removed = false;
-                for (int index = 0; index < favoriteChannels.size(); index++) {
-                        if (favoriteChannels.get(index).url.equals(channel.url)) {
-                                favoriteChannels.remove(index);
-                                removed = true;
-                                break;
-                        }
-                }
+        boolean removed = false;
+        for (int index = 0; index < favoriteChannels.size(); index++) {
+            if (favoriteChannels.get(index).url.equals(channel.url)) {
+                favoriteChannels.remove(index);
+                removed = true;
+                break;
+            }
+        }
 
-                if (!removed) {
-                        favoriteChannels.add(channel);
-                }
+        if (!removed) {
+            favoriteChannels.add(channel);
+        }
 
-                preferences.edit()
-                                .putString(PrefHelper.favorites, new Gson().toJson(favoriteChannels))
-                                .apply();
+        preferences
+                .edit()
+                .putString(PrefHelper.favorites, new Gson().toJson(favoriteChannels))
+                .apply();
 
-                Toast.makeText(
-                                this,
-                                removed ? "Removed from Favorites" : "Added to Favorites",
-                                Toast.LENGTH_SHORT
-                ).show();
+        Toast.makeText(
+                        this,
+                        removed ? "Removed from Favorites" : "Added to Favorites",
+                        Toast.LENGTH_SHORT)
+                .show();
     }
 
     private void showChannelInfo(final Channel channel) {
         new MaterialAlertDialogBuilder(this)
-                        .setTitle(channel.name)
-                        .setMessage(
-                            "Channel Number: " + String.valueOf(selectedId) + "\n" +
-                            "Name: " + channel.name + "\n" +
-                            "Url: " + channel.url + "\n"
-                        )
-                        .setNegativeButton(
-                                "Cancel",
-                                null
-                        )
-                        .setPositiveButton(
-                                "Play",
-                                (dialog, which) -> {
-                                    playChannel(channel);
-                                }
-                        )
-                        .show();
+                .setTitle(channel.name)
+                .setMessage(
+                        "Channel Number: "
+                                + String.valueOf(selectedId)
+                                + "\n"
+                                + "Name: "
+                                + channel.name
+                                + "\n"
+                                + "Url: "
+                                + channel.url
+                                + "\n")
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton(
+                        "Play",
+                        (dialog, which) -> {
+                            playChannel(channel);
+                        })
+                .show();
     }
-    
-    private void copyStreamUrl(final Channel channel) {
-        ClipboardManager clipboard =
-            (ClipboardManager) getSystemService(
-                    CLIPBOARD_SERVICE
-            );
 
-            ClipData clip =
-                    ClipData.newPlainText(
-                            "Stream URL",
-                            channel.url
-                    );
-        
-            clipboard.setPrimaryClip(clip);
-        
-            Toast.makeText(
-                    this,
-                    "Stream URL copied",
-                    Toast.LENGTH_SHORT
-            ).show();
+    private void copyStreamUrl(final Channel channel) {
+        ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+
+        ClipData clip = ClipData.newPlainText("Stream URL", channel.url);
+
+        clipboard.setPrimaryClip(clip);
+
+        Toast.makeText(this, "Stream URL copied", Toast.LENGTH_SHORT).show();
     }
-    
+
     private void shareChannel(final Channel channel) {
         Intent shareIntent = new Intent(Intent.ACTION_SEND);
         shareIntent.setType("text/plain");
-        shareIntent.putExtra(Intent.EXTRA_TEXT, 
-            channel.url
-        );
+        shareIntent.putExtra(Intent.EXTRA_TEXT, channel.url);
         Intent chooser = Intent.createChooser(shareIntent, "Share IPTV URL via:");
         if (shareIntent.resolveActivity(getPackageManager()) != null) {
             startActivity(chooser);
         }
     }
-    
+
     private void removeChannel(final Channel channel) {
         new MaterialAlertDialogBuilder(this)
-            .setTitle("Remove Channel?")
-            .setMessage(
-                    "Remove \"" +
-                    channel.name +
-                    "\" from your playlist?"
-            )
-            .setNegativeButton(
-                    "Cancel",
-                    null
-            )
-            .setPositiveButton(
-                    "Remove",
-                    (dialog, which) -> {
-                        if (channels == null || channel == null) {
-                            return;
-                        }
-                    
-                        boolean removed = channels.remove(channel);
-                    
-                        if (!removed) {
+                .setTitle("Remove Channel?")
+                .setMessage("Remove \"" + channel.name + "\" from your playlist?")
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton(
+                        "Remove",
+                        (dialog, which) -> {
+                            if (channels == null || channel == null) {
+                                return;
+                            }
+
+                            boolean removed = channels.remove(channel);
+
+                            if (!removed) {
+                                Toast.makeText(this, "Channel was not found", Toast.LENGTH_SHORT)
+                                        .show();
+
+                                return;
+                            }
+
+                            channelAdapter.notifyDataSetChanged();
+
+                            savePlaylist();
+
                             Toast.makeText(
-                                    this,
-                                    "Channel was not found",
-                                    Toast.LENGTH_SHORT
-                            ).show();
-                    
-                            return;
-                        }
-                    
-                        channelAdapter.notifyDataSetChanged();
-                    
-                        savePlaylist();
-                    
-                        Toast.makeText(
-                                this,
-                                channel.name + " removed\nPlease Refresh...",
-                                Toast.LENGTH_SHORT
-                        ).show();
-                    }
-            ).show();
+                                            this,
+                                            channel.name + " removed\nPlease Refresh...",
+                                            Toast.LENGTH_SHORT)
+                                    .show();
+                        })
+                .show();
     }
 
     private void savePlaylist() {
         Gson gson = new Gson();
 
         String json = gson.toJson(channels);
-    
-        preferences.edit().putString(
-            PrefHelper.urls, json
-        ).apply();
+
+        preferences.edit().putString(PrefHelper.urls, json).apply();
     }
-    
+
     private void loadSavedPlaylist() {
-        String json =
-                preferences.getString(
-                        PrefHelper.urls,
-                        ""
-                );
-    
+        String json = preferences.getString(PrefHelper.urls, "");
+
         if (json == null || json.isEmpty()) {
             return;
         }
-    
+
         Gson gson = new Gson();
-    
-        Type type =
-                new TypeToken<ArrayList<Channel>>() {}.getType();
-    
-        final ArrayList<Channel> savedChannels =
-                gson.fromJson(json, type);
-    
+
+        Type type = new TypeToken<ArrayList<Channel>>() {}.getType();
+
+        final ArrayList<Channel> savedChannels = gson.fromJson(json, type);
+
         if (savedChannels != null) {
-            txtStatus.setText(
-                "Loading playlist..."
-        );
+            txtStatus.setText("Loading playlist...");
 
-        //channelGrid.setVisibility(View.INVISIBLE);
-        _fab.setEnabled(false);
-        if (swipeRefreshLayout.isRefreshing()) {
-            swipeRefreshLayout.setRefreshing(false);
-        }
+            // channelGrid.setVisibility(View.INVISIBLE);
+            _fab.setEnabled(false);
+            if (swipeRefreshLayout.isRefreshing()) {
+                swipeRefreshLayout.setRefreshing(false);
+            }
 
-        executor.execute(() -> {
-            runOnUiThread(() -> {
+            executor.execute(
+                    () -> {
+                        runOnUiThread(
+                                () -> {
+                                    _fab.setEnabled(true);
+                                    // channelGrid.setVisibility(View.VISIBLE);
 
-                _fab.setEnabled(true);
-                //channelGrid.setVisibility(View.VISIBLE);
+                                    //                if (savedChannels != null) {
+                                    //
+                                    //                    txtStatus.setText(
+                                    //                            "Failed to load playlist"
+                                    //                    );
+                                    //
+                                    //                    Toast.makeText(
+                                    //                            MainActivity.this,
+                                    //                            "playlist.error",
+                                    //                            Toast.LENGTH_LONG
+                                    //                    ).show();
+                                    //
+                                    //                    return;
+                                    //                }
 
-//                if (savedChannels != null) {
-//
-//                    txtStatus.setText(
-//                            "Failed to load playlist"
-//                    );
-//
-//                    Toast.makeText(
-//                            MainActivity.this,
-//                            "playlist.error",
-//                            Toast.LENGTH_LONG
-//                    ).show();
-//
-//                    return;
-//                }
+                                    channels.clear();
+                                    channels.addAll(savedChannels);
 
-                channels.clear();
-                channels.addAll(savedChannels);
-                
-                channelAdapter.setChannels(channels);
+                                    channelAdapter.setChannels(channels);
 
-                txtStatus.setText(
-                        channels.size() +
-                        " channels loaded"
-                );
-                
-                // No need to use savePlaylist() here...
-            });
-        });
+                                    txtStatus.setText(channels.size() + " channels loaded");
+
+                                    // No need to use savePlaylist() here...
+                                });
+                    });
         }
     }
-    
+
     // --------------------------------------------------
     // Channel adapter
     // --------------------------------------------------
 
-    private class ChannelAdapter extends ArrayAdapter<Channel> implements android.widget.Filterable {
-    
+    private class ChannelAdapter extends ArrayAdapter<Channel>
+            implements android.widget.Filterable {
+
         private final ArrayList<Channel> allChannels;
         private final ArrayList<Channel> filteredChannels;
-    
+
         private final android.widget.Filter filter =
                 new android.widget.Filter() {
-    
-            @Override
-            protected FilterResults performFiltering(
-                    CharSequence constraint) {
-    
-                ArrayList<Channel> filtered =
-                        new ArrayList<>();
-    
-                if (constraint == null ||
-                        constraint.length() == 0) {
-    
-                    filtered.addAll(allChannels);
-    
-                } else {
-    
-                    String query =
-                            constraint.toString()
-                                    .toLowerCase()
-                                    .trim();
-    
-                    for (Channel channel : allChannels) {
-    
-                        if (channel.name
-                                .toLowerCase()
-                                .contains(query)) {
-    
-                            filtered.add(channel);
+
+                    @Override
+                    protected FilterResults performFiltering(CharSequence constraint) {
+
+                        ArrayList<Channel> filtered = new ArrayList<>();
+
+                        if (constraint == null || constraint.length() == 0) {
+
+                            filtered.addAll(allChannels);
+
+                        } else {
+
+                            String query = constraint.toString().toLowerCase().trim();
+
+                            for (Channel channel : allChannels) {
+
+                                if (channel.name.toLowerCase().contains(query)) {
+
+                                    filtered.add(channel);
+                                }
+                            }
                         }
+
+                        FilterResults results = new FilterResults();
+
+                        results.values = filtered;
+                        results.count = filtered.size();
+
+                        return results;
                     }
-                }
-    
-                FilterResults results =
-                        new FilterResults();
-    
-                results.values = filtered;
-                results.count = filtered.size();
-    
-                return results;
-            }
-    
-            @Override
-            @SuppressWarnings("unchecked")
-            protected void publishResults(
-                    CharSequence constraint,
-                    FilterResults results) {
-    
-                filteredChannels.clear();
-    
-                if (results.values != null) {
-    
-                    filteredChannels.addAll(
-                            (ArrayList<Channel>)
-                                    results.values
-                    );
-                }
-    
-                notifyDataSetChanged();
-            }
-        };
-    
+
+                    @Override
+                    @SuppressWarnings("unchecked")
+                    protected void publishResults(CharSequence constraint, FilterResults results) {
+
+                        filteredChannels.clear();
+
+                        if (results.values != null) {
+
+                            filteredChannels.addAll((ArrayList<Channel>) results.values);
+                        }
+
+                        notifyDataSetChanged();
+                    }
+                };
+
         ChannelAdapter() {
-    
-            super(
-                    MainActivity.this,
-                    android.R.layout.simple_list_item_1,
-                    new ArrayList<>()
-            );
-    
+
+            super(MainActivity.this, android.R.layout.simple_list_item_1, new ArrayList<>());
+
             allChannels = new ArrayList<>();
-    
+
             filteredChannels = new ArrayList<>();
-    
+
             allChannels.addAll(channels);
             filteredChannels.addAll(channels);
         }
-    
+
         @Override
         public int getCount() {
             return filteredChannels.size();
         }
-    
+
         @Override
         public Channel getItem(int position) {
             return filteredChannels.get(position);
         }
-    
+
         @Override
         public long getItemId(int position) {
             return position;
         }
-    
+
         @Override
-        public View getView(
-                int position,
-                View convertView,
-                android.view.ViewGroup parent) {
-    
+        public View getView(int position, View convertView, android.view.ViewGroup parent) {
+
             TextView textView;
-    
+
             if (convertView == null) {
-    
-                textView =
-                        new TextView(MainActivity.this);
-    
+
+                textView = new TextView(MainActivity.this);
+
                 GridView.LayoutParams params =
-                        new GridView.LayoutParams(
-                                GridView.LayoutParams.MATCH_PARENT,
-                                120
-                        );
-    
+                        new GridView.LayoutParams(GridView.LayoutParams.MATCH_PARENT, 120);
+
                 textView.setLayoutParams(params);
-    
-                textView.setGravity(
-                        Gravity.CENTER
-                );
-    
-                textView.setPadding(
-                        12,
-                        12,
-                        12,
-                        12
-                );
-    
-                textView.setTextColor(
-                        android.graphics.Color.WHITE
-                );
-    
+
+                textView.setGravity(Gravity.CENTER);
+
+                textView.setPadding(12, 12, 12, 12);
+
+                textView.setTextColor(android.graphics.Color.WHITE);
+
                 textView.setTextSize(15);
-    
-                textView.setBackgroundColor(
-                        android.graphics.Color.rgb(
-                                35,
-                                35,
-                                35
-                        )
-                );
-    
+
+                textView.setBackgroundColor(android.graphics.Color.rgb(35, 35, 35));
+
             } else {
-    
-                textView =
-                        (TextView) convertView;
+
+                textView = (TextView) convertView;
             }
-    
-            Channel channel =
-                    getItem(position);
-    
-            textView.setText(
-                    channel.name
-            );
-    
+
+            Channel channel = getItem(position);
+
+            textView.setText(channel.name);
+
             return textView;
         }
-    
+
         @Override
         public android.widget.Filter getFilter() {
             return filter;
         }
-    
-        void setChannels(
-                ArrayList<Channel> newChannels) {
-    
+
+        void setChannels(ArrayList<Channel> newChannels) {
+
             allChannels.clear();
-    
-            allChannels.addAll(
-                    newChannels
-            );
-    
+
+            allChannels.addAll(newChannels);
+
             filteredChannels.clear();
-    
-            filteredChannels.addAll(
-                    newChannels
-            );
-    
+
+            filteredChannels.addAll(newChannels);
+
             notifyDataSetChanged();
         }
     }
+
     // --------------------------------------------------
     // Channel model
     // --------------------------------------------------
@@ -1200,11 +1045,7 @@ public class MainActivity extends AppCompatActivity {
         String logo;
         String url;
 
-        Channel(
-                String name,
-                String logo,
-                String url
-        ) {
+        Channel(String name, String logo, String url) {
 
             this.name = name;
             this.logo = logo;
@@ -1221,10 +1062,7 @@ public class MainActivity extends AppCompatActivity {
         ArrayList<Channel> channels;
         String error;
 
-        PlaylistResult(
-                ArrayList<Channel> channels,
-                String error
-        ) {
+        PlaylistResult(ArrayList<Channel> channels, String error) {
 
             this.channels = channels;
             this.error = error;
