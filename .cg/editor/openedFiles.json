@@ -1,0 +1,36 @@
+{
+  "allFiles": [
+    {
+      "file": "/storage/emulated/0/CodeOnTheGoProjects/Tanaw-Android/app/src/main/AndroidManifest.xml",
+      "selection": {
+        "end": {
+          "column": 50,
+          "index": 896,
+          "line": 18
+        },
+        "start": {
+          "column": 50,
+          "index": 896,
+          "line": 18
+        }
+      }
+    },
+    {
+      "file": "/storage/emulated/0/CodeOnTheGoProjects/Tanaw-Android/app/src/main/java/com/jarredapps/tanaw/MainActivity.java",
+      "selection": {
+        "end": {
+          "column": 26,
+          "index": 1682,
+          "line": 44
+        },
+        "start": {
+          "column": 26,
+          "index": 1682,
+          "line": 44
+        }
+      }
+    }
+  ],
+  "projectPath": "/storage/emulated/0/CodeOnTheGoProjects/Tanaw-Android",
+  "selectedFile": "/storage/emulated/0/CodeOnTheGoProjects/Tanaw-Android/app/src/main/java/com/jarredapps/tanaw/MainActivity.java"
+}

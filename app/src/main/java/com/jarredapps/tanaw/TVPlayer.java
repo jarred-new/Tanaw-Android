@@ -1,14 +1,14 @@
 package com.jarredapps.tanaw;
 
+import android.app.PictureInPictureParams;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
-import android.util.Rational;
-import android.app.PictureInPictureParams;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Rational;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
