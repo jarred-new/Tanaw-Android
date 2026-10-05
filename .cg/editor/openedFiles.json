@@ -1,0 +1,21 @@
+{
+  "allFiles": [
+    {
+      "file": "/storage/emulated/0/CodeOnTheGoProjects/Tanaw-Android/app/src/main/java/com/jarredapps/tanaw/MainActivity.java",
+      "selection": {
+        "end": {
+          "column": 23,
+          "index": 2332,
+          "line": 64
+        },
+        "start": {
+          "column": 12,
+          "index": 2321,
+          "line": 64
+        }
+      }
+    }
+  ],
+  "projectPath": "/storage/emulated/0/CodeOnTheGoProjects/Tanaw-Android",
+  "selectedFile": "/storage/emulated/0/CodeOnTheGoProjects/Tanaw-Android/app/src/main/java/com/jarredapps/tanaw/MainActivity.java"
+}
