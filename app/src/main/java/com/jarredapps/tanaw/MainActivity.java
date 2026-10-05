@@ -218,15 +218,18 @@ public class MainActivity extends AppCompatActivity {
                 v -> {
                     checkAndCloseFab();
                     // TODO: Import Function
-                    pickFileLauncher.launch(new String[] {"application/json", ‌"text/plain"});
+                    pickFileLauncher.launch(new String[] {
+                        "application/json", 
+                        "text/plain"
+                    });
                 });
 
         favoritesButton.setOnClickListener(
-                        v -> {
-                            checkAndCloseFab();
-                            startActivity(new Intent(this, FavoritesActivity.class));
-                        });
-
+                v -> {
+                    checkAndCloseFab();
+                    startActivity(new Intent(this, FavoritesActivity.class));
+                });
+        
         // Channel click and long click
         channelGrid.setOnItemClickListener(
                 (parent, view, position, id) -> {
