@@ -62,6 +62,7 @@ public class MainActivity extends AppCompatActivity {
     private FloatingActionButton fab_add;
     private FloatingActionButton fab_import;
     private FloatingActionButton fab_export;
+    private ImageButton favoritesButton;
     private SwipeRefreshLayout swipeRefreshLayout;
     private SearchView searchView;
 
@@ -168,6 +169,7 @@ public class MainActivity extends AppCompatActivity {
         searchView = findViewById(R.id.searchView);
         swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
         channelGrid = findViewById(R.id.channelGrid);
+        favoritesButton = findViewById(R.id.favoritesButton);
 
         _fab = findViewById(R.id._fab);
         fab_add = findViewById(R.id.fab_add);
@@ -209,75 +211,19 @@ public class MainActivity extends AppCompatActivity {
                 v -> {
                     checkAndCloseFab();
                     // TODO: Export Function
-                    if (Build.VERSION.SDK_INT <= 29) {
-                        if (ContextCompat.checkSelfPermission(
-                                        this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                                == PackageManager.PERMISSION_GRANTED) {
-                            saveFileLauncher.launch("channels.json");
-                        } else {
-                            ActivityCompat.requestPermissions(
-                                    this,
-                                    new String[] {
-                                        android.Manifest.permission.WRITE_EXTERNAL_STORAGE
-                                    },
-                                    100);
-                        }
-                    }
-                    else if (Build.VERSION.SDK_INT >= 30) {
-                        if (ContextCompat.checkSelfPermission(
-                                        this, android.Manifest.permission.MANAGE_EXTERNAL_STORAGE)
-                                == PackageManager.PERMISSION_GRANTED) {
-                            saveFileLauncher.launch("channels.json");
-                        } else {
-                            ActivityCompat.requestPermissions(
-                                    this,
-                                    new String[] {
-                                        android.Manifest.permission.MANAGE_EXTERNAL_STORAGE
-                                    },
-                                    100);
-                        }
-                    }
+                    saveFileLauncher.launch("channels.json");
                 });
 
         fab_import.setOnClickListener(
                 v -> {
                     checkAndCloseFab();
                     // TODO: Import Function
-                    if (Build.VERSION.SDK_INT <= 29) {
-                        if (ContextCompat.checkSelfPermission(
-                                        this, android.Manifest.permission.READ_EXTERNAL_STORAGE)
-                                == PackageManager.PERMISSION_GRANTED) {
-                            pickFileLauncher.launch(new String[] {"application/json"});
-                        } else {
-                            ActivityCompat.requestPermissions(
-                                    this,
-                                    new String[] {
-                                        android.Manifest.permission.READ_EXTERNAL_STORAGE
-                                    },
-                                    100);
-                        }
-                    }
-                    else if (Build.VERSION.SDK_INT >= 30) {
-                        if (ContextCompat.checkSelfPermission(
-                                        this, android.Manifest.permission.MANAGE_EXTERNAL_STORAGE)
-                                == PackageManager.PERMISSION_GRANTED) {
-                            pickFileLauncher.launch(new String[] {"application/json"});
-                        } else {
-                            ActivityCompat.requestPermissions(
-                                    this,
-                                    new String[] {
-                                        android.Manifest.permission.MANAGE_EXTERNAL_STORAGE
-                                    },
-                                    100);
-                        }
-                    }
+                    pickFileLauncher.launch(new String[] {"application/json", ‌"text/plain"});
                 });
 
-        findViewById(R.id.favoritesButton)
-                .setOnClickListener(
+        favoritesButton.setOnClickListener(
                         v -> {
                             checkAndCloseFab();
-
                             startActivity(new Intent(this, FavoritesActivity.class));
                         });
 
