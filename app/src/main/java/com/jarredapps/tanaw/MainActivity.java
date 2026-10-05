@@ -296,13 +296,13 @@ public class MainActivity extends AppCompatActivity {
         // Refresh to reload channels
         swipeRefreshLayout.setOnRefreshListener(
                 () -> {
-                    String urlRefresh = preferences.getString(PrefHelper.urls, "");
+                    String savedPlaylist = preferences.getString(PrefHelper.urls, "");
 
-                    if (!savedUrl.isEmpty()) {
-                        // loadPlaylist(urlRefresh);
+                    if (!savedPlaylist.isEmpty()) {
                         loadSavedPlaylist();
                     } else {
                         swipeRefreshLayout.setRefreshing(false);
+
                         Toast.makeText(
                                         MainActivity.this,
                                         "No Channels or Playlists were added yet!",
