@@ -19,15 +19,15 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: gradle
-    
+
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
-        
-      - name: Build with Gradle
-        run: ./gradlew assembleDebug
-        
+
+      - name: Test and build with Gradle
+        run: ./gradlew --no-daemon testDebugUnitTest assembleDebug
+
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Tanaw-Android-Arm64
+          name: Tanaw-Android-debug
           path: app/build/outputs/apk/debug/app-debug.apk
