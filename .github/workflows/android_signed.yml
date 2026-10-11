@@ -1,4 +1,4 @@
-name: Android v1.0 Release
+name: Android Cl (signed for release)
 
 on:
   push:
