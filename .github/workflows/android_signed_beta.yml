@@ -1,0 +1,71 @@
+name: Android Cl (signed for beta release)
+
+on:
+  push:
+    tags:
+      - 'beta-*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: temurin
+          cache: gradle
+
+      - name: Build release APK
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon clean testDebugUnitTest assembleRelease
+
+      - name: Sign and verify APK
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        run: |
+          set -euo pipefail
+          : "${KEYSTORE_BASE64:?KEYSTORE_BASE64 secret is required}"
+          : "${KEYSTORE_PASSWORD:?KEYSTORE_PASSWORD secret is required}"
+          : "${KEY_PASSWORD:?KEY_PASSWORD secret is required}"
+          : "${KEY_ALIAS:?KEY_ALIAS secret is required}"
+
+          unsigned_apk="app/build/outputs/apk/release/app-release-unsigned.apk"
+          signed_apk="app/build/outputs/apk/release/Tanaw-Android-v1.0.apk"
+          test -s "$unsigned_apk"
+
+          umask 077
+          keystore="$RUNNER_TEMP/release-keystore.jks"
+          trap 'rm -f "$keystore"' EXIT
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$keystore"
+          test -s "$keystore"
+
+          apksigner="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n 1)"
+          test -x "$apksigner"
+          "$apksigner" sign \
+            --ks "$keystore" \
+            --ks-key-alias "$KEY_ALIAS" \
+            --ks-pass env:KEYSTORE_PASSWORD \
+            --key-pass env:KEY_PASSWORD \
+            --out "$signed_apk" \
+            "$unsigned_apk"
+          "$apksigner" verify --verbose "$signed_apk"
+
+          (cd "$(dirname "$signed_apk")" && sha256sum "$(basename "$signed_apk")" \
+            > "$(basename "$signed_apk").sha256")
+
+      - name: Upload Asset to Existing Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            app/build/outputs/apk/release/Tanaw-Android-v1.0.apk
+            app/build/outputs/apk/release/Tanaw-Android-v1.0.apk.sha256
