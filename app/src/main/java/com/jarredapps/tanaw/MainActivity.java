@@ -8,13 +8,14 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.InputType;
-import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.GridView;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -965,38 +966,17 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public View getView(int position, View convertView, android.view.ViewGroup parent) {
-
-            TextView textView;
-
             if (convertView == null) {
-
-                textView = new TextView(MainActivity.this);
-
-                GridView.LayoutParams params =
-                        new GridView.LayoutParams(GridView.LayoutParams.MATCH_PARENT, 120);
-
-                textView.setLayoutParams(params);
-
-                textView.setGravity(Gravity.CENTER);
-
-                textView.setPadding(12, 12, 12, 12);
-
-                textView.setTextColor(android.graphics.Color.WHITE);
-
-                textView.setTextSize(15);
-
-                textView.setBackgroundColor(android.graphics.Color.rgb(35, 35, 35));
-
-            } else {
-
-                textView = (TextView) convertView;
+                convertView = LayoutInflater.from(parent.getContext())
+                        .inflate(R.layout.item_channel, parent, false);
             }
 
             Channel channel = getItem(position);
-
-            textView.setText(channel.name);
-
-            return textView;
+            TextView nameView = convertView.findViewById(R.id.channelName);
+            ImageView logoView = convertView.findViewById(R.id.channelLogo);
+            nameView.setText(channel.name);
+            ChannelLogoLoader.load(channel.logo, logoView);
+            return convertView;
         }
 
         @Override

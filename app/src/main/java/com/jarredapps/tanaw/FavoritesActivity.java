@@ -3,10 +3,11 @@ package com.jarredapps.tanaw;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.GridView;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
@@ -166,21 +167,16 @@ public class FavoritesActivity extends AppCompatActivity {
 
         @Override
         public View getView(int position, View convertView, android.view.ViewGroup parent) {
-            TextView textView = convertView instanceof TextView
-                    ? (TextView) convertView
-                    : new TextView(FavoritesActivity.this);
             if (convertView == null) {
-                GridView.LayoutParams params = new GridView.LayoutParams(
-                        GridView.LayoutParams.MATCH_PARENT, 120);
-                textView.setLayoutParams(params);
-                textView.setGravity(Gravity.CENTER);
-                textView.setPadding(12, 12, 12, 12);
-                textView.setTextColor(android.graphics.Color.WHITE);
-                textView.setTextSize(15);
-                textView.setBackgroundColor(android.graphics.Color.rgb(35, 35, 35));
+                convertView = LayoutInflater.from(parent.getContext())
+                        .inflate(R.layout.item_channel, parent, false);
             }
-            textView.setText(getItem(position).name);
-            return textView;
+            Channel channel = getItem(position);
+            TextView nameView = convertView.findViewById(R.id.channelName);
+            ImageView logoView = convertView.findViewById(R.id.channelLogo);
+            nameView.setText(channel.name);
+            ChannelLogoLoader.load(channel.logo, logoView);
+            return convertView;
         }
 
         @Override
