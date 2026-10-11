@@ -1,12 +1,18 @@
 name: Android Cl (signed for release)
 
+# for error fixing and changes, uncomment
+# on:
+#   push:
+#     branches:
+#       - main
+#   pull_request:
+#     branches:
+#       - main
+
 on:
   push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+    tags:
+      - "v*"
 
 permissions:
   contents: write
