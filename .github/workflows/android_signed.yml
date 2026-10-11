@@ -2,8 +2,11 @@ name: Android Cl (signed for release)
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 permissions:
   contents: write
