@@ -40,7 +40,7 @@ jobs:
           : "${KEY_ALIAS:?KEY_ALIAS secret is required}"
 
           unsigned_apk="app/build/outputs/apk/release/app-release-unsigned.apk"
-          signed_apk="app/build/outputs/apk/release/Tanaw-Android-v1.0.apk"
+          signed_apk="app/build/outputs/apk/release/Tanaw-Android-${{ github.ref_name }}.apk"
           test -s "$unsigned_apk"
 
           umask 077
@@ -66,6 +66,8 @@ jobs:
       - name: Upload Asset to Existing Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ github.ref_name }}
           files: |
-            app/build/outputs/apk/release/Tanaw-Android-v1.0.apk
-            app/build/outputs/apk/release/Tanaw-Android-v1.0.apk.sha256
+            app/build/outputs/apk/release/Tanaw-Android-${{ github.ref_name }}.apk
+            app/build/outputs/apk/release/Tanaw-Android-${{ github.ref_name }}.apk.sha256
+
