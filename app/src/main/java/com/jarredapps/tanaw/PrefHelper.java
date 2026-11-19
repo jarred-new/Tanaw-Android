@@ -7,4 +7,5 @@ public class PrefHelper {
     public static final String urlsIntent = "urlsSend";
     public static final String channelNameIntent = "channelName";
     public static final String channelIdIntent = "channelId";
+    public static final String dataSaver = "dataSaver";
 }
