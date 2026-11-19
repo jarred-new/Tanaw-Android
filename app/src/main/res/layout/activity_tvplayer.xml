@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout
-	xmlns:android="http://schemas.android.com/apk/res/android"
-	xmlns:app="http://schemas.android.com/apk/res-auto"
-	android:layout_width="match_parent"
-	android:layout_height="match_parent"
-	android:id="@+id/player"
-	android:background="?attr/colorSurface">
-    
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/player"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/colorSurface">
+
     <androidx.media3.ui.PlayerView
         android:id="@+id/playerView"
         android:layout_width="0dp"
@@ -20,29 +20,31 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-	<LinearLayout
+    <LinearLayout
         android:id="@+id/bottomBar"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:padding="10dp"
         android:layout_marginBottom="18dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:orientation="horizontal"
-        android:gravity="center_vertical">
-    
+        app:layout_constraintEnd_toEndOf="parent">
+
         <ImageButton
             android:id="@+id/backButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@drawable/ic_back"
+            android:contentDescription="Back"
             style="?android:attr/borderlessButtonStyle" />
-    
+
         <TextView
             android:id="@+id/channelNameText"
-            android:layout_width="200dp"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:text="Channel"
             android:textColor="?attr/colorOnSurface"
             android:textSize="18sp"
@@ -54,21 +56,22 @@
             android:marqueeRepeatLimit="marquee_forever"
             android:scrollHorizontally="true"
             android:singleLine="true" />
-            
-        <View
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_weight="1" />
-    
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/dataSaverSwitch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:contentDescription="Limit video quality to save mobile data"
+            android:text="Data saver"
+            android:textColor="?attr/colorOnSurface" />
+
         <ImageButton
             android:id="@+id/pipButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@drawable/ic_picture_in_picture"
+            android:contentDescription="Picture in picture"
             style="?android:attr/borderlessButtonStyle" />
-    
     </LinearLayout>
-
-
-
 </androidx.constraintlayout.widget.ConstraintLayout>

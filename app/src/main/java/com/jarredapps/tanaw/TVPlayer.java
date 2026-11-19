@@ -1,8 +1,6 @@
 package com.jarredapps.tanaw;
 
 import android.app.PictureInPictureParams;
-import android.content.Intent;
-import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.net.Uri;
@@ -10,7 +8,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.util.Rational;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -20,6 +17,7 @@ import androidx.activity.EdgeToEdge;
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
@@ -31,6 +29,7 @@ import androidx.media3.datasource.DefaultDataSource;
 import androidx.media3.datasource.DefaultHttpDataSource;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory;
+import androidx.media3.exoplayer.trackselection.DefaultTrackSelector;
 import androidx.media3.ui.PlayerView;
 
 import com.google.android.material.color.DynamicColors;
@@ -39,18 +38,17 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import java.util.Locale;
 
 public class TVPlayer extends AppCompatActivity {
-
     private PlayerView playerView;
     private ExoPlayer player;
+    private DefaultTrackSelector trackSelector;
     private TextView channelNameText;
     private ImageButton backButton;
     private LinearLayout bottomBar;
     private ImageButton pipButton;
-
+    private SwitchCompat dataSaverSwitch;
     private String streamUrl;
     private String channelName;
     private String channelId;
-    
     private boolean fullscreen;
 
     @Override
@@ -58,9 +56,7 @@ public class TVPlayer extends AppCompatActivity {
         setTheme(R.style.Theme_Tanaw_Player);
         DynamicColors.applyIfAvailable(this);
         EdgeToEdge.enable(this);
-        
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_tvplayer);
 
         playerView = findViewById(R.id.playerView);
@@ -68,427 +64,206 @@ public class TVPlayer extends AppCompatActivity {
         backButton = findViewById(R.id.backButton);
         bottomBar = findViewById(R.id.bottomBar);
         pipButton = findViewById(R.id.pipButton);
+        dataSaverSwitch = findViewById(R.id.dataSaverSwitch);
 
-        streamUrl = getIntent().getStringExtra(
-            PrefHelper.urlsIntent
-        );
-
-        channelName = getIntent().getStringExtra(
-            PrefHelper.channelNameIntent
-        );
-        
-        channelId = getIntent().getStringExtra(
-            PrefHelper.channelIdIntent
-        );
-
-        if (channelName == null ||
-                channelName.trim().isEmpty()) {
-
+        streamUrl = getIntent().getStringExtra(PrefHelper.urlsIntent);
+        channelName = getIntent().getStringExtra(PrefHelper.channelNameIntent);
+        channelId = getIntent().getStringExtra(PrefHelper.channelIdIntent);
+        if (channelName == null || channelName.trim().isEmpty()) {
             channelName = "Unknown Channel";
         }
-        
         channelNameText.setText(channelName);
         channelNameText.setSelected(true);
 
-        /*
-         * Check stream URL.
-         */
-        if (streamUrl == null ||
-                streamUrl.trim().isEmpty()) {
+        boolean dataSaverEnabled = getPreferences(MODE_PRIVATE)
+                .getBoolean(PrefHelper.dataSaver, false);
+        dataSaverSwitch.setChecked(dataSaverEnabled);
+        dataSaverSwitch.setOnCheckedChangeListener((button, enabled) -> {
+            getPreferences(MODE_PRIVATE).edit().putBoolean(PrefHelper.dataSaver, enabled).apply();
+            applyDataSaver(enabled);
+            Toast.makeText(this, enabled
+                    ? "Data saver on: video quality limited to 360p"
+                    : "Data saver off: automatic video quality", Toast.LENGTH_SHORT).show();
+        });
 
-            showErrorDialog(
-                    "Invalid Stream",
-                    "The channel does not contain a valid stream URL.",
-                    true
-            );
-
+        if (streamUrl == null || streamUrl.trim().isEmpty()) {
+            showErrorDialog("Invalid Stream",
+                    "The channel does not contain a valid stream URL.", true);
             return;
         }
-
         streamUrl = streamUrl.trim();
-        
-        this.fullscreen = false;
+        fullscreen = false;
 
-        OnBackPressedCallback callback =
-                new OnBackPressedCallback(true /* enabled by default */) {
-                    @Override
-                    public void handleOnBackPressed() {
-                        if (fullscreen == true) {
-                            //exitFullScreen();
-                            playerView.setFullscreenButtonState(false);
-                        } else {
-                            new MaterialAlertDialogBuilder(TVPlayer.this)
-                                    .setTitle("Are you sure to stop?")
-                                    .setNegativeButton("No", null)
-                                    .setPositiveButton(
-                                            "Yes",
-                                            (dialog, which) -> {
-                                                finish();
-                                            })
-                                    .show();
-                        }
-                    }
-                };
-        getOnBackPressedDispatcher().addCallback(this, callback);
-        
-        backButton.setOnClickListener(v -> {
-            new MaterialAlertDialogBuilder(TVPlayer.this)
-                .setTitle("Are you sure to stop?")
-                .setNegativeButton("No", null)
-                .setPositiveButton("Yes", (dialog, which) -> {
-                    finish();
-                })
-                .show();
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (fullscreen) {
+                    playerView.setFullscreenButtonState(false);
+                } else {
+                    confirmStop();
+                }
+            }
         });
-        
-        if (getPackageManager().hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE) && Build.VERSION.SDK_INT >= 26) {
+        backButton.setOnClickListener(v -> confirmStop());
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+                && getPackageManager().hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)) {
             pipButton.setVisibility(View.VISIBLE);
-            pipButton.setOnClickListener(v -> {
-                Rational aspectRatio = new Rational(16, 9); // Set your video aspect ratio
-                PictureInPictureParams params = new PictureInPictureParams.Builder()
-                        .setAspectRatio(aspectRatio)
-                        .build();
-                enterPictureInPictureMode(params);
-            });
-        }
-        else {
+            pipButton.setOnClickListener(v -> enterPictureInPictureMode(
+                    new PictureInPictureParams.Builder().setAspectRatio(new Rational(16, 9)).build()));
+        } else {
             pipButton.setVisibility(View.GONE);
         }
+    }
+
+    private void confirmStop() {
+        new MaterialAlertDialogBuilder(this)
+                .setTitle("Are you sure to stop?")
+                .setNegativeButton("No", null)
+                .setPositiveButton("Yes", (dialog, which) -> finish())
+                .show();
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-
-        if (streamUrl != null &&
-                !streamUrl.isEmpty()) {
-
-            initializePlayer();
-        }
+        if (streamUrl != null && !streamUrl.isEmpty()) initializePlayer();
     }
 
     private void initializePlayer() {
+        if (player != null) return;
 
-        if (player != null) {
-            return;
-        }
+        DefaultHttpDataSource.Factory httpFactory = new DefaultHttpDataSource.Factory()
+                .setUserAgent("Tanaw/1.0")
+                .setAllowCrossProtocolRedirects(true);
+        DefaultDataSource.Factory dataSourceFactory = new DefaultDataSource.Factory(this, httpFactory);
+        DefaultMediaSourceFactory mediaSourceFactory = new DefaultMediaSourceFactory(dataSourceFactory);
 
-        /*
-         * HTTP data source.
-         *
-         * IPTV providers commonly require
-         * a User-Agent.
-         */
-        DefaultHttpDataSource.Factory httpFactory =
-                new DefaultHttpDataSource.Factory()
-                        .setUserAgent(
-                                "Tanaw/1.0"
-                        )
-                        .setAllowCrossProtocolRedirects(
-                                true
-                        );
-
-        /*
-         * Default data source.
-         */
-        DefaultDataSource.Factory dataSourceFactory =
-                new DefaultDataSource.Factory(
-                        this,
-                        httpFactory
-                );
-
-        /*
-         * Media source factory.
-         */
-        DefaultMediaSourceFactory mediaSourceFactory =
-                new DefaultMediaSourceFactory(
-                        dataSourceFactory
-                );
-
-        /*
-         * Create ExoPlayer.
-         */
+        trackSelector = new DefaultTrackSelector(this);
+        applyDataSaver(dataSaverSwitch.isChecked());
         player = new ExoPlayer.Builder(this)
-                .setMediaSourceFactory(
-                        mediaSourceFactory
-                )
+                .setTrackSelector(trackSelector)
+                .setMediaSourceFactory(mediaSourceFactory)
                 .build();
-
-        /*
-         * Attach PlayerView.
-         */
         playerView.setPlayer(player);
+        player.addListener(new Player.Listener() {
+            @Override
+            public void onPlayerError(PlaybackException error) {
+                showPlaybackError(error);
+            }
 
-        /*
-         * Player listener.
-         */
-        player.addListener(
-                new Player.Listener() {
-
-                    @Override
-                    public void onPlayerError(
-                            PlaybackException error
-                    ) {
-
-                        showPlaybackError(error);
-                    }
-                    
-                    @Override
-                    public void onPlaybackStateChanged(int state) {
-                        switch (state) {
-                            case Player.STATE_READY:
-                                TVInfoToast.showInfo(
-                                    TVPlayer.this,
-                                    channelId,
-                                    channelName,
-                                    streamUrl,
-                                    Toast.LENGTH_LONG
-                                );
-                                break;
-                        }
-                    }
+            @Override
+            public void onPlaybackStateChanged(int state) {
+                if (state == Player.STATE_READY) {
+                    TVInfoToast.showInfo(TVPlayer.this, channelId, channelName,
+                            streamUrl, Toast.LENGTH_LONG);
                 }
-        );
-        
-        playerView.setFullscreenButtonClickListener(isFullScreen -> {
-            if (isFullScreen) {
-                enterFullScreen();
-            } else {
-                exitFullScreen();
             }
         });
+        playerView.setFullscreenButtonClickListener(isFullScreen -> {
+            if (isFullScreen) enterFullScreen(); else exitFullScreen();
+        });
 
-        /*
-         * Build MediaItem.
-         */
-        MediaItem.Builder mediaBuilder =
-                new MediaItem.Builder()
-                        .setUri(
-                                Uri.parse(streamUrl)
-                        );
-
-        /*
-         * Detect HLS.
-         */
-        String lowerUrl =
-                streamUrl.toLowerCase(
-                        Locale.US
-                );
-
-        if (lowerUrl.contains(".m3u8")) {
-
-            mediaBuilder.setMimeType(
-                    MimeTypes.APPLICATION_M3U8
-            );
+        MediaItem.Builder mediaBuilder = new MediaItem.Builder().setUri(Uri.parse(streamUrl));
+        if (streamUrl.toLowerCase(Locale.US).contains(".m3u8")) {
+            mediaBuilder.setMimeType(MimeTypes.APPLICATION_M3U8);
         }
-
-        MediaItem mediaItem =
-                mediaBuilder.build();
-
-        /*
-         * Start playback.
-         */
-        player.setMediaItem(mediaItem);
-
+        player.setMediaItem(mediaBuilder.build());
         player.prepare();
-
         player.play();
     }
 
-    private void showPlaybackError(
-            PlaybackException error
-    ) {
+    private void applyDataSaver(boolean enabled) {
+        if (trackSelector == null) return;
+        DefaultTrackSelector.Parameters.Builder parameters = trackSelector.buildUponParameters();
+        if (enabled) {
+            // Prefer a lower-resolution rendition when the stream provides adaptive tracks.
+            parameters.setMaxVideoSize(640, 360).setMaxVideoBitrate(1_000_000);
+        } else {
+            parameters.setMaxVideoSize(Integer.MAX_VALUE, Integer.MAX_VALUE)
+                    .setMaxVideoBitrate(Integer.MAX_VALUE);
+        }
+        trackSelector.setParameters(parameters);
+    }
 
-        StringBuilder message =
-                new StringBuilder();
-
-        message.append(
-                "Unable to play this channel."
-        );
-
-        /*
-         * Media3 error code.
-         */
-        message.append("\n\n");
-
-        message.append(
-                "Error: "
-        );
-
-        message.append(
-                error.getErrorCodeName()
-        );
-
-        /*
-         * Underlying exception.
-         */
+    private void showPlaybackError(PlaybackException error) {
+        StringBuilder message = new StringBuilder("Unable to play this channel.\n\nError: ")
+                .append(error.getErrorCodeName());
         if (error.getCause() != null) {
-
-            Throwable cause =
-                    error.getCause();
-
-            message.append("\n\n");
-
-            message.append(
-                    "Cause: "
-            );
-
-            message.append(
-                    cause.getClass()
-                            .getSimpleName()
-            );
-
-            if (cause.getMessage() != null &&
-                    !cause.getMessage().isEmpty()) {
-
-                message.append("\n");
-
-                message.append(
-                        cause.getMessage()
-                );
+            message.append("\n\nCause: ").append(error.getCause().getClass().getSimpleName());
+            if (error.getCause().getMessage() != null && !error.getCause().getMessage().isEmpty()) {
+                message.append("\n").append(error.getCause().getMessage());
             }
         }
-
-        showErrorDialog(
-                "Playback Error",
-                message.toString(),
-                false
-        );
+        showErrorDialog("Playback Error", message.toString(), false);
     }
 
-    private void showErrorDialog(
-            String title,
-            String message,
-            boolean finishActivity
-    ) {
-
-        /*
-         * Make sure the Activity is still alive.
-         */
-        if (isFinishing() ||
-                isDestroyed()) {
-
-            return;
-        }
-
-        MaterialAlertDialogBuilder builder =
-                new MaterialAlertDialogBuilder(
-                        this
-                );
-
-        builder.setTitle(title);
-
-        builder.setMessage(message);
-
-        builder.setPositiveButton(
-                "OK",
-                (dialog, which) -> {
-
-                    dialog.dismiss();
-
-                    if (finishActivity) {
-                        finish();
-                    }
-                }
-        );
-
-        builder.setOnCancelListener(
-                dialog -> {
-
-                    if (finishActivity) {
-                        finish();
-                    }
-                }
-        );
-
-        builder.show();
+    private void showErrorDialog(String title, String message, boolean finishActivity) {
+        if (isFinishing() || isDestroyed()) return;
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(title)
+                .setMessage(message)
+                .setPositiveButton("OK", (dialog, which) -> {
+                    if (finishActivity) finish();
+                })
+                .setOnCancelListener(dialog -> {
+                    if (finishActivity) finish();
+                })
+                .show();
     }
-    
-   private void enterFullScreen() {
-        // Change orientation to landscape
-        //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 
-        // Hide the Action Bar/Toolbar
-        if (bottomBar != null) {
-            bottomBar.setVisibility(View.GONE);
-        }
-
-        // Hide Status Bar and Navigation Bars using WindowInsetsController
-        WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+    private void enterFullScreen() {
+        if (bottomBar != null) bottomBar.setVisibility(View.GONE);
+        WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(
+                getWindow(), getWindow().getDecorView());
         controller.hide(WindowInsetsCompat.Type.systemBars());
-        controller.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
-
-        this.fullscreen = true;
-        
-        TVInfoToast.showInfo(
-            TVPlayer.this,
-            channelId,
-            channelName,
-            streamUrl,
-            Toast.LENGTH_LONG
-        );
+        controller.setSystemBarsBehavior(
+                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+        fullscreen = true;
+        TVInfoToast.showInfo(TVPlayer.this, channelId, channelName, streamUrl, Toast.LENGTH_LONG);
     }
 
     private void exitFullScreen() {
-        // Return orientation to portrait
-        //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-        
-        // Show Action Bar/Toolbar
-        if (bottomBar != null) {
-            bottomBar.setVisibility(View.VISIBLE);
-        }
-
-        // Restore Status Bar and Navigation Bars
-        WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
-        controller.show(WindowInsetsCompat.Type.systemBars());
-
-        this.fullscreen = false;
+        if (bottomBar != null) bottomBar.setVisibility(View.VISIBLE);
+        WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView())
+                .show(WindowInsetsCompat.Type.systemBars());
+        fullscreen = false;
     }
 
     @Override
     protected void onStop() {
-
         super.onStop();
-
         releasePlayer();
     }
 
     private void releasePlayer() {
-
         if (player != null) {
-
             playerView.setPlayer(null);
-
             player.release();
-
             player = null;
+            trackSelector = null;
         }
     }
 
     @Override
     protected void onDestroy() {
-
         releasePlayer();
-
         super.onDestroy();
     }
-    
+
     @Override
     public void onConfigurationChanged(Configuration config) {
         super.onConfigurationChanged(config);
-        // Get Orientation
-        int orientation = config.orientation;
     }
-    
+
     @Override
-    public void onPictureInPictureModeChanged(boolean isInPictureInPictureMode, Configuration newConfig) {
+    public void onPictureInPictureModeChanged(boolean isInPictureInPictureMode,
+            Configuration newConfig) {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig);
         if (isInPictureInPictureMode) {
-            // Hide controllers and extra UI elements
             playerView.hideController();
             bottomBar.setVisibility(View.GONE);
         } else {
-            // Show controllers back when user returns to full screen
             playerView.showController();
             bottomBar.setVisibility(View.VISIBLE);
         }
