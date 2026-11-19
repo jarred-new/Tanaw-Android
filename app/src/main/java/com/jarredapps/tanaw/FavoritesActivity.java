@@ -2,6 +2,7 @@ package com.jarredapps.tanaw;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,6 +26,8 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 
 public class FavoritesActivity extends AppCompatActivity {
+    private static final String STATE_SEARCH_QUERY = "favorites_search_query";
+
     private TextView txtStatus;
     private GridView channelGrid;
     private SwipeRefreshLayout swipeRefreshLayout;
@@ -32,19 +35,18 @@ public class FavoritesActivity extends AppCompatActivity {
     private final ArrayList<Channel> channels = new ArrayList<>();
     private ChannelAdapter channelAdapter;
     private SharedPreferences preferences;
+    private String searchQuery = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         setTheme(R.style.Theme_Tanaw);
         DynamicColors.applyToActivityIfAvailable(this);
         EdgeToEdge.enable(this);
-        
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_favorites);
-        
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.favoritesLayout), (v, insets) -> {
-            return insets;
-        });
+
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.favoritesLayout), (v, insets) -> insets);
 
         txtStatus = findViewById(R.id.txtStatus_Favorites);
         searchView = findViewById(R.id.searchView_Favorites);
@@ -53,6 +55,10 @@ public class FavoritesActivity extends AppCompatActivity {
         preferences = getSharedPreferences(PrefHelper.prefName, MODE_PRIVATE);
 
         findViewById(R.id.backButton_Favorites).setOnClickListener(v -> finish());
+
+        if (savedInstanceState != null) {
+            searchQuery = savedInstanceState.getString(STATE_SEARCH_QUERY, "");
+        }
 
         channelAdapter = new ChannelAdapter();
         channelGrid.setAdapter(channelAdapter);
@@ -73,23 +79,46 @@ public class FavoritesActivity extends AppCompatActivity {
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                channelAdapter.getFilter().filter(query);
+                searchQuery = query == null ? "" : query;
+                channelAdapter.getFilter().filter(searchQuery);
                 return true;
             }
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                channelAdapter.getFilter().filter(newText);
+                searchQuery = newText == null ? "" : newText;
+                channelAdapter.getFilter().filter(searchQuery);
                 return true;
             }
         });
+
+        if (!searchQuery.isEmpty()) {
+            searchView.setQuery(searchQuery, false);
+        }
+
         swipeRefreshLayout.setOnRefreshListener(this::loadFavorites);
+        loadFavorites();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         loadFavorites();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(STATE_SEARCH_QUERY, searchQuery);
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        channelGrid.requestLayout();
+        if (channelAdapter != null) {
+            channelAdapter.getFilter().filter(searchQuery);
+        }
     }
 
     private void loadFavorites() {
@@ -146,6 +175,35 @@ public class FavoritesActivity extends AppCompatActivity {
         private final ArrayList<Channel> allChannels = new ArrayList<>();
         private final ArrayList<Channel> filteredChannels = new ArrayList<>();
 
+        private final android.widget.Filter filter = new android.widget.Filter() {
+            @Override
+            protected FilterResults performFiltering(CharSequence constraint) {
+                ArrayList<Channel> results = new ArrayList<>();
+                String query = constraint == null ? "" : constraint.toString().trim().toLowerCase();
+                for (Channel channel : allChannels) {
+                    if (query.isEmpty()
+                            || (channel.name != null
+                                    && channel.name.toLowerCase().contains(query))) {
+                        results.add(channel);
+                    }
+                }
+                FilterResults filterResults = new FilterResults();
+                filterResults.values = results;
+                filterResults.count = results.size();
+                return filterResults;
+            }
+
+            @Override
+            @SuppressWarnings("unchecked")
+            protected void publishResults(CharSequence constraint, FilterResults results) {
+                filteredChannels.clear();
+                if (results != null && results.values != null) {
+                    filteredChannels.addAll((ArrayList<Channel>) results.values);
+                }
+                notifyDataSetChanged();
+            }
+        };
+
         ChannelAdapter() {
             super(FavoritesActivity.this, android.R.layout.simple_list_item_1);
         }
@@ -181,38 +239,13 @@ public class FavoritesActivity extends AppCompatActivity {
 
         @Override
         public android.widget.Filter getFilter() {
-            return new android.widget.Filter() {
-                @Override
-                protected FilterResults performFiltering(CharSequence constraint) {
-                    ArrayList<Channel> results = new ArrayList<>();
-                    String query = constraint == null ? "" : constraint.toString().trim();
-                    for (Channel channel : allChannels) {
-                        if (query.isEmpty() || channel.name.toLowerCase().contains(query.toLowerCase())) {
-                            results.add(channel);
-                        }
-                    }
-                    FilterResults filterResults = new FilterResults();
-                    filterResults.values = results;
-                    filterResults.count = results.size();
-                    return filterResults;
-                }
-
-                @Override
-                @SuppressWarnings("unchecked")
-                protected void publishResults(CharSequence constraint, FilterResults results) {
-                    filteredChannels.clear();
-                    filteredChannels.addAll((ArrayList<Channel>) results.values);
-                    notifyDataSetChanged();
-                }
-            };
+            return filter;
         }
 
         void setChannels(ArrayList<Channel> newChannels) {
             allChannels.clear();
             allChannels.addAll(newChannels);
-            filteredChannels.clear();
-            filteredChannels.addAll(newChannels);
-            notifyDataSetChanged();
+            getFilter().filter(searchQuery);
         }
     }
 }
